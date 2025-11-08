@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import org.springframework.http.ResponseEntity;
 
@@ -31,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import com.example.gymerp.config.FileStorageProperties;
 import com.example.gymerp.dto.EmpDto;
+import com.example.gymerp.dto.MemberDto;
 import com.example.gymerp.security.CustomUserDetails;
 import com.example.gymerp.service.EmpService;
 import com.example.gymerp.service.SalesItemServiceImpl;
@@ -40,7 +40,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 
-import com.example.gymerp.dto.EmpDto;
 
 
 
@@ -50,7 +49,7 @@ import com.example.gymerp.dto.EmpDto;
 public class EmpController {
 
     private final SalesItemServiceImpl salesItemServiceImpl;
-
+    
     private final EmpService empService;
     public final AuthenticationManager authManager;
 
@@ -214,4 +213,12 @@ public class EmpController {
             return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
         }
     }
+
+    
+    // 특정 직원의 회원조회 API
+    @GetMapping("/{empNum}/members/pt-users")
+    public List<MemberDto> managedMembersWithPt(@PathVariable int empNum) {
+      return empService.selectManagedMembersWithPtBySchedule(empNum);
+    }
+
 }

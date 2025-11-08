@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import com.example.gymerp.dto.EmpDto;
+import com.example.gymerp.dto.MemberDto;
+
 import lombok.RequiredArgsConstructor;
 
 @Repository
@@ -131,6 +133,16 @@ public class EmpDaoImpl implements EmpDao {
     public int getTotalCount(String type, String keyword) {
         return getTotalCount(type, keyword, "ALL");
     }
+
+	@Override
+	public List<MemberDto> selectManagedMembersWithPt(int empNum) {
+		return session.selectList("EmployeeMapper.selectManagedMembersWithPt", empNum);
+	}
+
+	@Override
+	public List<MemberDto> selectManagedMembersWithPtBySchedule(int empNum) {
+		return session.selectList("EmployeeMapper.selectManagedMembersWithPtBySchedule", empNum);
+	}
 
 }
 

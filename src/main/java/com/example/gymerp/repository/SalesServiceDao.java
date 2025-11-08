@@ -45,7 +45,7 @@ public interface SalesServiceDao {
     int selectSalesServiceCount(Map<String, Object> params);
 
     // 조건 + 페이징(스크롤) 기반 판매 내역 조회
-    List<SalesService> selectPagedSalesServices(Map<String, Object> params);
+    List<Map<String, Object>> selectPagedSalesServices(Map<String, Object> params);
 
 
     // ===============================

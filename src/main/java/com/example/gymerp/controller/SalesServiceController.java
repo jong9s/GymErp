@@ -15,12 +15,12 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
-@ConditionalOnProperty(     
+/*@ConditionalOnProperty(     
     prefix = "feature",
     name = "service-sale",
     havingValue = "true",
     matchIfMissing = false
-)
+)*/
 public class SalesServiceController {
 
     private final SalesServiceService salesServiceService;
@@ -103,7 +103,7 @@ public class SalesServiceController {
         params.put("startRow", startRow);
         params.put("endRow", endRow);
 
-        List<SalesService> list = salesServiceService.getPagedSalesServices(params);
+        List<Map<String, Object>> list = salesServiceService.getPagedSalesServices(params);
         int totalCount = salesServiceService.getSalesServiceCount(params);
 
         Map<String, Object> result = new HashMap<>();

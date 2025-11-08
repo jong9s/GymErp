@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.gymerp.dto.EmpDto;
+import com.example.gymerp.dto.MemberDto;
 import com.example.gymerp.repository.EmpDao;
 
 
@@ -152,5 +153,17 @@ public class EmpServiceImpl implements EmpService {
     public int getTotalCount(String type, String keyword) {
         return getTotalCount(type, keyword, "ALL");
     }
+    
+    // 특정 직원의 회원 조회(PT 잔여수가 있는 경우)
+	@Override
+	public List<MemberDto> selectManagedMembersWithPt(int empNum) {
+		return empDao.selectManagedMembersWithPt(empNum);
+	}
+	
+	// 특정 직원의 회원 조회(PT 스케줄이 등록된 경우)
+	@Override
+	public List<MemberDto> selectManagedMembersWithPtBySchedule(int empNum) {
+		return empDao.selectManagedMembersWithPtBySchedule(empNum);
+	}
 
 }

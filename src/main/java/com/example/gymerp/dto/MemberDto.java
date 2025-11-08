@@ -30,5 +30,8 @@ public class MemberDto {
 	private Date    voucherEndDate;    // 최신권 만료일
 	private Integer ptRemain;          // pt_log.countChange 합계
 	private String  membershipStatus;  // '사용중' | '미사용중'
-
+	
+	// *추가 직원상세-회원목록으로 로딩할 값
+	private Integer usedCount;   // 소비(사용) 회수
+	private Timestamp lastUseAt; // 마지막 사용일(소비 기준)
 }

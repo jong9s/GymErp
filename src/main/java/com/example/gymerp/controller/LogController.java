@@ -103,10 +103,5 @@ public class LogController {
         return Map.of("memNum", memNum, "remainingCount", remaining);
     }
 
-    // 특정 환불 로그 조회 (refundId = usageId)
-    @GetMapping("/pt/refund/{refundId}")
-    public Map<String, Object> getRefundLog(@PathVariable Long refundId) {
-        PtLogDto dto = logService.getPtLogByRefundId(refundId);
-        return Map.of("refundLog", dto);
-    }
+    
 }

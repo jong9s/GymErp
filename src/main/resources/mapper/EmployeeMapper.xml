@@ -220,4 +220,37 @@
 	              END
 	  WHERE EMPNUM = #{empNum}
 	</update>
+	
+	<!-- 특정 직원의 회원 조회 조건:(잔여 PT > 0, 최소 1회 사용) -->
+	<select id="selectManagedMembersWithPtBySchedule" parameterType="int" resultType="com.example.gymerp.dto.MemberDto">
+	  WITH MINE AS (
+	    SELECT DISTINCT S.MEMNUM
+	    FROM SCHEDULE S
+	    WHERE S.EMPNUM = #{empNum}
+	      AND S.CODEBID IN ('PT','SCHEDULE-PT')
+	  ),
+	  AGG AS (
+	    SELECT
+	      MEMNUM,
+	      SUM(COUNTCHANGE) AS ptRemain,
+	      SUM(CASE WHEN COUNTCHANGE &lt; 0 THEN 1 ELSE 0 END) AS usedCount,
+	      MAX(CASE WHEN COUNTCHANGE &lt; 0 THEN CREATEDAT END) AS lastUseAt
+	    FROM PT_LOG
+	    GROUP BY MEMNUM
+	  )
+	  SELECT
+	    M.MEMNUM   AS memNum,
+	    M.MEMNAME  AS memName,
+	    M.MEMPHONE AS memPhone,
+	    M.MEMEMAIL AS memEmail,
+	    NVL(A.ptRemain,0)  AS ptRemain,
+	    NVL(A.usedCount,0) AS usedCount,
+	    A.lastUseAt        AS lastUseAt
+	  FROM MINE X
+	  JOIN MEMBER M ON M.MEMNUM = X.MEMNUM
+	  LEFT JOIN AGG A ON A.MEMNUM = X.MEMNUM
+	  WHERE NVL(A.ptRemain,0) > 0
+	    AND NVL(A.usedCount,0) >= 1
+	  ORDER BY M.MEMNAME
+	</select>
 </mapper>

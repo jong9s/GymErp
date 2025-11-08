@@ -2,6 +2,7 @@ package com.example.gymerp.service;
 
 import java.util.List;
 import com.example.gymerp.dto.EmpDto;
+import com.example.gymerp.dto.MemberDto;
 
 public interface EmpService {
 	
@@ -44,4 +45,8 @@ public interface EmpService {
     
     // 퇴사 처리(소프트 삭제)
     public void resign(int empNum, String reason);
+    
+    // 특정 직원의 회원조회
+    List<MemberDto> selectManagedMembersWithPt(int empNum);
+    List<MemberDto> selectManagedMembersWithPtBySchedule(int empNum);
 }

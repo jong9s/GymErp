@@ -37,6 +37,9 @@ public interface LogDao {
     // 회원권 연장 (기존 endDate + N일 추가)
     int extendVoucherPeriod(Map<String, Object> params);
 
+    // ✅ 직전 회원권(원시 로그) 조회
+    VoucherLogDto selectPreviousVoucherByMember(long memNum);
+
 
 
     // ===============================
@@ -46,26 +49,29 @@ public interface LogDao {
     // PT 신규 충전 로그 등록
     int insertPtChargeLog(PtLogDto dto);
 
-    // PT 연장 (기존 row update)
-    int updatePtLogExtension(PtLogDto dto);
-
     // PT 부분환불 로그 (새로운 row insert)
     int insertPtPartialRefundLog(PtLogDto dto);
 
     // PT 전체환불 로그 (새로운 row insert)
     int insertPtFullRefundLog(PtLogDto dto);
 
-    // 남은 PT 횟수 조회
+    // ✅ PT 남은 횟수 조회 (단일 통합)
     int selectRemainingPtCount(long memNum);
 
-    // 특정 판매건의 PT 로그 찾기 (usageId 기준)
+    // ✅ PT_LOG - 기존 충전 로그 조회
+    PtLogDto getPtLogBySalesId(long salesId);
+
+    // ✅ 특정 환불ID로 PT 로그 조회
     PtLogDto selectPtLogByUsageId(long usageId);
 
-    // 판매내역(salesId) 기준으로 PT 충전 로그 조회
-    PtLogDto selectPtLogBySalesId(long salesId);
-
-    // 기존 PT 충전 로그의 countChange 수정 (연장 처리)
+    // ✅ 기존 PT 충전 로그의 countChange 수정 (연장 처리)
     int updatePtChargeCount(PtLogDto dto);
+
+    // ✅ 내 차례 도달 여부 판별
+    int checkPtTurnReached(Map<String, Object> params);
+    
+    // ✅ 해당 차례 이후 실제 사용 여부 확인
+    int getUsedCountBySalesId(long salesId);
 
 
 

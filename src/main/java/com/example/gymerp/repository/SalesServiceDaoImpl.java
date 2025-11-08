@@ -76,7 +76,7 @@ public class SalesServiceDaoImpl implements SalesServiceDao {
 
     // 조건 + 페이징(스크롤) 기반 판매 내역 조회
     @Override
-    public List<SalesService> selectPagedSalesServices(Map<String, Object> params) {
+    public List<Map<String, Object>> selectPagedSalesServices(Map<String, Object> params) {
         return sqlSession.selectList("SalesServiceMapper.selectPagedSalesServices", params);
     }
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.example.gymerp.dto.EmpDto;
+import com.example.gymerp.dto.MemberDto;
 
 public interface EmpDao {
 	
@@ -52,4 +53,8 @@ public interface EmpDao {
     
     // 퇴사 처리
     int markResigned(@Param("empNum") int empNum, @Param("reason") String reason);
+    
+    // 특정 직원의 회원 조회(Pt 및 스케줄이 SCHEDULE-PT 인 경우)
+    List<MemberDto> selectManagedMembersWithPt(int empNum);
+    List<MemberDto> selectManagedMembersWithPtBySchedule(int empNum);
 }

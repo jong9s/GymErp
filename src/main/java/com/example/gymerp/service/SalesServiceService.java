@@ -35,7 +35,7 @@ public interface SalesServiceService {
 	 int getSalesServiceCount(Map<String, Object> params);
 	
 	 // 조건 + 페이징(스크롤) 기반 판매 내역 조회
-	 List<SalesService> getPagedSalesServices(Map<String, Object> params);
+	 List<Map<String, Object>> getPagedSalesServices(Map<String, Object> params);
 
 
     /* ===============================
