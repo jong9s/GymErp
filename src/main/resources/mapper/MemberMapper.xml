@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<!-- 인터페이스 매퍼용: MemberDao의 FQCN을 namespace로 -->
 <mapper namespace="MemberMapper">
 
 	<!-- 공통 결과 매핑 -->
@@ -180,7 +177,7 @@
         WHERE memNum = #{memNum}
     </update>
 
-    <!-- 회원 삭제 (물리삭제, 추후 상태 컬럼으로 변경 가능) -->
+    <!-- 회원 삭제 -->
     <delete id="delete" parameterType="int">
         DELETE FROM MEMBER
         WHERE memNum = #{memNum}
@@ -191,7 +188,7 @@
     <!-- 이용내역 DB 관련 내용입니다.  -->
     
     
-     <!-- 회원 이름 단건 조회 (로그용) -->
+    <!-- 회원 이름 단건 조회 (로그용) -->
 
 
 
