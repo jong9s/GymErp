@@ -39,6 +39,18 @@ public class ProductController {
 		
 		return productService.getProducts(pageNum, dto, sortBy, direction);
 	}
+	
+	//상품 목록 조회(수량없이 조회)
+	@GetMapping("/product/withoutQuantity")
+	public ProductListResponse getProductListWithoutQuantity(
+			@RequestParam(defaultValue = "1") int pageNum, 
+			ProductDto dto,
+			@RequestParam(defaultValue = "codeBName") String sortBy,
+        	@RequestParam(defaultValue = "ASC") String direction
+	) {
+		
+		return productService.getProductsWithoutQuantity(pageNum, dto, sortBy, direction);
+	}
 		
 	//실물 상품 등록
 	@PostMapping("/product")

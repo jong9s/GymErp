@@ -14,9 +14,9 @@ public class LogController {
 
     private final LogService logService;
 
-    /* ================================
-       [회원권 관련]
-    ================================ */
+    // ================================
+    // [회원권 관련]
+    // ================================
 
     // 회원권 유효 여부 확인
     @GetMapping("/voucher/check")
@@ -48,24 +48,16 @@ public class LogController {
     }
 
     // 회원권 부분환불
-    @PutMapping("/voucher/refund/{memNum}")
+    @PutMapping("/voucher/partialrefund/{memNum}")
     public Map<String, Object> refundVoucher(@PathVariable Long memNum, @RequestBody VoucherLogDto dto) {
         dto.setMemNum(memNum);
         logService.partialRefundVoucherLog(dto);
         return Map.of("message", "회원권이 부분환불되었습니다.");
     }
 
-    // 회원권 전체환불 (회귀)
-    @PutMapping("/voucher/rollback/{memNum}")
-    public Map<String, Object> rollbackVoucher(@PathVariable Long memNum, @RequestBody VoucherLogDto dto) {
-        dto.setMemNum(memNum);
-        logService.rollbackVoucherLog(dto);
-        return Map.of("message", "회원권이 전체환불(회귀) 처리되었습니다.");
-    }
-
-    /* ================================
-       [PT 관련]
-    ================================ */
+    // ================================
+    // [PT 관련]
+    // ================================
 
     // PT 충전 로그 등록
     @PostMapping("/pt/charge")
@@ -102,6 +94,4 @@ public class LogController {
         int remaining = logService.getRemainingPtCount(memNum);
         return Map.of("memNum", memNum, "remainingCount", remaining);
     }
-
-    
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,9 @@ public class SalesItemServiceImpl implements SalesItemService {
 			salesItem.setUnitPrice(product.getPrice());
 		}
 
-		salesItem.setCreatedAt(java.time.LocalDateTime.now());
+		LocalDateTime now = java.time.ZonedDateTime.now(java.time.ZoneId.of("Asia/Seoul")).toLocalDateTime();
+		salesItem.setCreatedAt(now);
+		salesItem.setUpdatedAt(now);
 		BigDecimal quantityBd = BigDecimal.valueOf(salesItem.getQuantity());
 		salesItem.setTotalAmount(salesItem.getUnitPrice().multiply(quantityBd).setScale(0, RoundingMode.DOWN));
 

@@ -35,7 +35,7 @@
 	        #{memberName},
 	        TO_DATE(SUBSTR(#{startDate}, 1, 19), 'YYYY-MM-DD"T"HH24:MI:SS'),
 	        TO_DATE(SUBSTR(#{endDate}, 1, 19), 'YYYY-MM-DD"T"HH24:MI:SS')
-    )
+	    )
     </insert>
 
     <!-- 회원권 기간 연장 -->
@@ -55,40 +55,24 @@
 
     <!-- 회원권 부분환불 (endDate 단축) -->
     <update id="partialRefundVoucherLog" parameterType="VoucherLogDto">
+	    UPDATE voucher_log
+	    SET endDate = TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
+	    WHERE memNum = #{memNum}
+	</update>
+
+    <!-- 회원권 전체환불 (미사용 상태에서 endDate 단축) -->
+    <update id="fullRefundVoucherLog" parameterType="VoucherLogDto">
         UPDATE voucher_log
-        SET endDate = #{endDate}
+        SET endDate = TO_DATE(#{endDate}, 'YYYY-MM-DD HH24:MI:SS')
         WHERE memNum = #{memNum}
     </update>
 
-    <!-- 회원권 전체환불 (이전 상태로 복구) -->
-    <update id="rollbackVoucherLog" parameterType="VoucherLogDto">
-        UPDATE voucher_log
-        SET endDate = #{endDate}
-        WHERE memNum = #{memNum}
-    </update>
-
-    <!-- 회원권(VOUCHER) 연장 관련 -->
+    <!-- 회원권 연장 일수 추가 -->
     <update id="extendVoucherPeriod" parameterType="map">
         UPDATE voucher_log
            SET endDate = endDate + #{extendDays}
          WHERE memNum = #{memNum}
     </update>
-
-    <!-- ✅ 직전 회원권(원시 로그) 조회 -->
-    <select id="selectPreviousVoucherByMember" parameterType="long" resultType="VoucherLogDto">
-        SELECT *
-	    FROM (
-	        SELECT *
-	        FROM voucher_log
-	        WHERE memNum = #{memNum}
-	          AND endDate &lt; (
-	              SELECT MAX(endDate)
-	              FROM voucher_log
-	              WHERE memNum = #{memN          )
-	        ORDER BY endDate DESC
-	    )
-	    WHERE ROWNUM = 1
-    </select>
 
 
 
@@ -108,7 +92,7 @@
         )
     </insert>
 
-    <!-- PT 부분환불 로그 추가 -->
+    <!-- PT 부분환불 로그 등록 -->
     <insert id="insertPtPartialRefundLog" parameterType="PtLogDto">
         <selectKey keyProperty="usageId" resultType="long" order="BEFORE">
             SELECT pt_log_seq.NEXTVAL FROM DUAL
@@ -120,7 +104,7 @@
         )
     </insert>
 
-    <!-- PT 전체환불 로그 추가 -->
+    <!-- PT 전체환불 로그 등록 -->
     <insert id="insertPtFullRefundLog" parameterType="PtLogDto">
         <selectKey keyProperty="usageId" resultType="long" order="BEFORE">
             SELECT pt_log_seq.NEXTVAL FROM DUAL
@@ -132,7 +116,7 @@
         )
     </insert>
 
-    <!-- PT_LOG - 기존 충전 로그 조회 -->
+    <!-- 기존 충전 로그 조회 -->
     <select id="getPtLogBySalesId" parameterType="long" resultType="PtLogDto">
         SELECT usageId, memNum, empNum, status, countChange, salesId, createdAt
         FROM pt_log
@@ -140,7 +124,7 @@
           AND status = '충전'
     </select>
 
-    <!-- ✅ PT 연장 시 기존 충전 로그의 countChange 수정 -->
+    <!-- PT 연장 시 기존 충전 로그 수정 -->
     <update id="updatePtChargeCount" parameterType="PtLogDto">
         UPDATE pt_log
            SET countChange = #{countChange}
@@ -148,21 +132,21 @@
            AND status = '충전'
     </update>
 
-    <!-- PT_LOG - 남은 PT 횟수 계산 (중복 제거 후 단일 유지) -->
+    <!-- 남은 PT 횟수 계산 -->
     <select id="selectRemainingPtCount" parameterType="long" resultType="int">
         SELECT NVL(SUM(countChange), 0)
         FROM pt_log
         WHERE memNum = #{memNum}
     </select>
 
-    <!-- 특정 환불ID로 PT 로그 조회 -->
+    <!-- 환불ID 기준 PT 로그 조회 -->
     <select id="selectPtLogByUsageId" parameterType="long" resultType="PtLogDto">
         SELECT usageId, memNum, empNum, status, countChange, createdAt, salesId, regId
         FROM pt_log
         WHERE usageId = #{refundId}
     </select>
 
-    <!-- ✅ [추가] 내 차례 도달 여부 판별 -->
+    <!-- 내 차례 도달 여부 판별 -->
     <select id="checkPtTurnReached" parameterType="map" resultType="int">
         SELECT CASE
                  WHEN NVL(SUM(CASE WHEN status = '소비' THEN -countChange ELSE 0 END), 0)
@@ -176,9 +160,9 @@
 
 
 
-    <!-- =============================== -->
-    <!-- [PT 예약 / 취소 관련] -->
-    <!-- =============================== -->
+    <!-- ===============================
+         [PT 예약 / 취소 관련]
+    =============================== -->
 
     <!-- PT 예약 로그 등록 (소비) -->
     <insert id="insertPtConsumeLog" parameterType="PtLogDto">
@@ -217,31 +201,25 @@
         )
     </insert>
 
-    <!-- PT 등록번호 기준으로 기존 소비 로그 조회 -->
+    <!-- 등록번호 기준 소비 로그 조회 -->
     <select id="selectPtLogByRegId" parameterType="long" resultType="PtLogDto">
         SELECT usageId, memNum, empNum, status, countChange, createdAt, salesId, regId
         FROM pt_log
         WHERE regId = #{regId}
           AND status = '소비'
     </select>
-    
-    <!-- ✅ 해당 차례 이후 실제 사용 여부 확인 -->
+
+    <!-- 차례 이후 실제 사용 여부 확인 -->
     <select id="getUsedCountBySalesId" parameterType="long" resultType="int">
-        SELECT COUNT(*)
-        FROM pt_log
-        WHERE status = '소비'
-          AND memNum = (
-              SELECT memNum
-              FROM pt_log
-              WHERE salesId = #{salesId}
-                AND status = '충전'
-          )
-          AND createdAt &gt;= (
-              SELECT MIN(createdAt)
-              FROM pt_log
-              WHERE salesId = #{salesId}
-                AND status = '충전'
-          )
-    </select>
+	    SELECT NVL(SUM(
+	        CASE
+	            WHEN status IN ('소비', '부분환불', '전체환불') THEN countChange
+	            WHEN status = '예약취소' THEN -countChange
+	            ELSE 0
+	        END
+	    ), 0)
+	    FROM pt_log
+	    WHERE salesId = #{salesId}
+	</select>
 
 </mapper>

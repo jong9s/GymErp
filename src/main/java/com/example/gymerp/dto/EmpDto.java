@@ -38,6 +38,10 @@ public class EmpDto {
     private Date fireDate;        // 퇴사(예정)일
     
     private String profileImage;  // 프로필 사진 파일명
+    private Boolean removeProfile; // 프로필 사진 삭제
+    
     private String empMemo;       // 메모
     private String role;          // 직급 (EMP, ADMIN)
+    
+    
 }

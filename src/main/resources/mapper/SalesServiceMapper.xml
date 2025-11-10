@@ -49,7 +49,7 @@
             #{baseAmount},
             #{actualAmount},
             #{serviceType},
-            NULL,               -- refundId는 PT_LOG 생성 후 업데이트됨
+            NULL,               <!-- refundId는 PT_LOG 생성 후 업데이트됨 -->
             'ACTIVE',
             SYSDATE,
             SYSDATE
@@ -96,9 +96,10 @@
          ※ 총 4개 필터: 기간 / 품목명 / 회원 / 직원
     =============================== -->
 
+    <!-- 필터 기본 WHERE절 정의 -->
     <sql id="baseWhereService">
         <where>
-            <!-- ① 기간 -->
+            <!-- 기간 필터 -->
             <if test="startDate != null and startDate != ''">
                 AND ss.createdAt &gt;= TO_DATE(#{startDate}, 'YYYY-MM-DD')
             </if>
@@ -106,17 +107,17 @@
                 AND ss.createdAt &lt;= TO_DATE(#{endDate} || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
             </if>
 
-            <!-- ② 품목명 (sales_service.serviceName 기준) -->
+            <!-- 품목명 필터 -->
             <if test="serviceNameKeyword != null and serviceNameKeyword != ''">
                 AND UPPER(ss.serviceName) LIKE '%' || UPPER(#{serviceNameKeyword}) || '%'
             </if>
 
-            <!-- ③ 회원 -->
+            <!-- 회원 필터 -->
             <if test="memNum != null and memNum != ''">
                 AND ss.memNum = #{memNum}
             </if>
 
-            <!-- ④ 직원 -->
+            <!-- 직원 필터 -->
             <if test="empNum != null and empNum != ''">
                 AND ss.empNum = #{empNum}
             </if>
@@ -133,34 +134,34 @@
         <include refid="baseWhereService"/>
     </select>
 
-    <!-- 서비스 판매 내역 조회 -->
+    <!-- 서비스 판매 내역 조회 (페이징 적용) -->
     <select id="selectPagedSalesServices" parameterType="map" resultType="map">
-	  SELECT *
-	  FROM (
-	    SELECT
-	        ss.SERVICESALESID     AS "serviceSalesId",
-	        ss.SERVICEID          AS "serviceId",
-	        ss.SERVICENAME        AS "serviceName",
-	        ss.SERVICETYPE        AS "serviceType",
-	        ss.EMPNUM             AS "empNum",
-	        e.EMPNAME             AS "empName",   <!-- ✅ 직원명 (소문자 alias 고정) -->
-	        ss.MEMNUM             AS "memNum",
-	        m.MEMNAME             AS "memName",   <!-- ✅ 회원명 (소문자 alias 고정) -->
-	        ss.BASECOUNT          AS "baseCount",
-	        ss.ACTUALCOUNT        AS "actualCount",
-	        ss.DISCOUNT           AS "discount",
-	        ss.BASEAMOUNT         AS "baseAmount",
-	        ss.ACTUALAMOUNT       AS "actualAmount",
-	        ss.STATUS             AS "status",
-	        ss.CREATEDAT          AS "createdAt",
-	        ss.UPDATEDAT          AS "updatedAt",
-	        ROW_NUMBER() OVER (ORDER BY ss.SERVICESALESID DESC) AS rn
-	    FROM SALES_SERVICE ss
-	    LEFT JOIN EMPLOYEE e ON ss.EMPNUM = e.EMPNUM
-	    LEFT JOIN MEMBER  m ON ss.MEMNUM = m.MEMNUM
-	    <include refid="baseWhereService"/>
-	  )
-	  WHERE rn BETWEEN #{startRow} AND #{endRow}
-	</select>
+        SELECT *
+        FROM (
+            SELECT
+                ss.SERVICESALESID     AS "serviceSalesId",
+                ss.SERVICEID          AS "serviceId",
+                ss.SERVICENAME        AS "serviceName",
+                ss.SERVICETYPE        AS "serviceType",
+                ss.EMPNUM             AS "empNum",
+                e.EMPNAME             AS "empName",   <!-- 직원명 alias -->
+                ss.MEMNUM             AS "memNum",
+                m.MEMNAME             AS "memName",   <!-- 회원명 alias -->
+                ss.BASECOUNT          AS "baseCount",
+                ss.ACTUALCOUNT        AS "actualCount",
+                ss.DISCOUNT           AS "discount",
+                ss.BASEAMOUNT         AS "baseAmount",
+                ss.ACTUALAMOUNT       AS "actualAmount",
+                ss.STATUS             AS "status",
+                ss.CREATEDAT          AS "createdAt",
+                ss.UPDATEDAT          AS "updatedAt",
+                ROW_NUMBER() OVER (ORDER BY ss.SERVICESALESID DESC) AS rn
+            FROM SALES_SERVICE ss
+            LEFT JOIN EMPLOYEE e ON ss.EMPNUM = e.EMPNUM
+            LEFT JOIN MEMBER  m ON ss.MEMNUM = m.MEMNUM
+            <include refid="baseWhereService"/>
+        )
+        WHERE rn BETWEEN #{startRow} AND #{endRow}
+    </select>
 
 </mapper>

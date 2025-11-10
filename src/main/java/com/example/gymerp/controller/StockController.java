@@ -1,6 +1,7 @@
 package com.example.gymerp.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,17 +40,17 @@ public class StockController {
 	}
 	
 	// 2-3. 상품 재고 조회. 상품테이블에서 구분 코드와 상품명 가져오기, 입출고 테이블에서 입고수량-출고수량 표시
-	@GetMapping("/stock")
-	public List<CurrentStockDto> getProductStockList(
-	    @RequestParam(defaultValue = "1") 
-	    int page,
-	    @RequestParam(defaultValue = "20") 
-	    int size,
-	    @RequestParam(required = false) String 
-	    keyword
-	) {
-	    return stockService.getProductStockList(page, size, keyword);
-	}
+//	@GetMapping("/stock")
+//	public List<CurrentStockDto> getProductStockList(
+//	    @RequestParam(defaultValue = "1") 
+//	    int page,
+//	    @RequestParam(defaultValue = "20") 
+//	    int size,
+//	    @RequestParam(required = false) String 
+//	    keyword
+//	) {
+//	    return stockService.getProductStockList(page, size, keyword);
+//	}
 	
 	// 상품 입고 내역 조회
 	@GetMapping("/stock/{productId}/inbound")
@@ -75,11 +76,12 @@ public class StockController {
 	
 	// 상품의 재고를 추가 및 차감 
 	@PostMapping("/stock/{productId}/adjust")
-	public ResponseEntity<Void> adjustProduct(
+	public ResponseEntity<Map<String, Object>> adjustProduct(
 	        @PathVariable int productId,
 	        @RequestBody @Valid StockAdjustRequestDto request
 	) {
 		stockService.adjustProduct(productId, request);
-		  return ResponseEntity.noContent().build(); // 204
-	    }
+		Map<String, Object> responseBody = Map.of("message", "재고 조정에 성공했습니다.");
+		return ResponseEntity.ok(responseBody);
+	}
 }

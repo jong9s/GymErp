@@ -138,7 +138,7 @@
 		#{itemSalesId}, #{productId}, #{productName},
 		#{empNum}, #{quantity}, #{unitPrice, jdbcType=DECIMAL}, #{totalAmount,
 		jdbcType=DECIMAL},
-		#{productType}, #{status}, SYSDATE, SYSDATE
+		#{productType}, #{status}, #{createdAt}, #{updatedAt}
 		)
 	</insert>
 

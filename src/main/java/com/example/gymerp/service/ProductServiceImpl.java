@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.UUID;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,12 +65,53 @@ public class ProductServiceImpl implements ProductService{
 		
 		//상품 목록 얻어오기 (검색 키워드가 있다면 조건에 맞는 목록만 얻어낸다)
 		List<ProductDto> list = productDao.selectPage(dto);
+
+		return ProductListResponse.builder()
+				.list(list)
+				.pageNum(pageNum)
+				.startPageNum(startPageNum)
+				.endPageNum(endPageNum)
+				.totalPageCount(totalPageCount)
+				.totalRow(totalRow)
+				.build();
+	}
+	
+	@Override
+	public ProductListResponse getProductsWithoutQuantity(int pageNum, ProductDto dto, String sortBy, String direction) {
 		
-		// 각 상품에 대한 재고 수량 설정
-		for (ProductDto product : list) {
-			int qunatity = stockService.getStockOne(product.getProductId());
-			product.setQuantity(qunatity);
+		//한 페이지에 몇개씩 표시할 것인지
+		final int PAGE_ROW_COUNT=10;
+		
+		//하단 페이지를 몇개씩 표시할 것인지
+		final int PAGE_DISPLAY_COUNT=5;
+
+		//보여줄 페이지의 시작 ROWNUM
+		int startRowNum=1+(pageNum-1)*PAGE_ROW_COUNT; //공차수열
+		//보여줄 페이지의 끝 ROWNUM
+		int endRowNum=pageNum*PAGE_ROW_COUNT; //등비수열 
+		
+		//하단 시작 페이지 번호 (정수를 정수로 나누면 소수점이 버려진 정수가 나온다)
+		int startPageNum = 1 + ((pageNum-1)/PAGE_DISPLAY_COUNT)*PAGE_DISPLAY_COUNT;
+		//하단 끝 페이지 번호
+		int endPageNum=startPageNum+PAGE_DISPLAY_COUNT-1;
+		
+		//전체글의 갯수
+		int totalRow = productDao.getCount(dto);
+		
+		//전체 페이지의 갯수 구하기
+		int totalPageCount=(int)Math.ceil(totalRow/(double)PAGE_ROW_COUNT);
+		//끝 페이지 번호가 이미 전체 페이지 갯수보다 크게 계산되었다면 잘못된 값이다.
+		if(endPageNum > totalPageCount){
+			endPageNum=totalPageCount; //보정해 준다. 
 		}
+		// startRowNum 과 endRowNum 을 ProductDto 객체에 담아서
+		dto.setStartRowNum(startRowNum);
+		dto.setEndRowNum(endRowNum);
+		dto.setSortBy(sortBy);
+		dto.setDirection(direction);
+		
+		//상품 목록 얻어오기 (검색 키워드가 있다면 조건에 맞는 목록만 얻어낸다)
+		List<ProductDto> list = productDao.selectPageWithoutQuantity(dto);
 
 		return ProductListResponse.builder()
 				.list(list)
@@ -102,6 +146,9 @@ public class ProductServiceImpl implements ProductService{
 			//UserDto 에 저장된 이미지의 이름을 넣어준다
 			dto.setProfileImage(saveFileName);
 		}
+		ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+		LocalDateTime ldt = zdt.toLocalDateTime();
+		dto.setCreatedAt(ldt);
 		
 		productDao.insert(dto);
 		
@@ -136,6 +183,9 @@ public class ProductServiceImpl implements ProductService{
 			//UserDto 에 저장된 이미지의 이름을 넣어준다
 			dto.setProfileImage(saveFileName);
 		}
+		ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+		LocalDateTime ldt = zdt.toLocalDateTime();
+		dto.setUpdatedAt(ldt);
 		
 		int rowCount = productDao.update(dto);
 		if(rowCount == 0) {

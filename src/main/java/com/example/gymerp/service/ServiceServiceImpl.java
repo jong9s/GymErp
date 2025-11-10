@@ -1,5 +1,8 @@
 package com.example.gymerp.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -65,11 +68,17 @@ public class ServiceServiceImpl implements ServiceService{
 	
 	@Override
 	public void save(ServiceDto dto) {
+		ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+		LocalDateTime ldt = zdt.toLocalDateTime();
+		dto.setCreatedAt(ldt);
 		serviceDao.insert(dto);
 	}
 
 	@Override
 	public void modifyService(ServiceDto dto) {
+		ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+		LocalDateTime ldt = zdt.toLocalDateTime();
+		dto.setUpdatedAt(ldt);
 		int rowCount = serviceDao.update(dto);
 		if(rowCount == 0) {
 			throw new RuntimeException("상품 수정 실패!");

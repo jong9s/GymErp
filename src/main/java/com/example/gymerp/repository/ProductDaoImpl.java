@@ -23,6 +23,12 @@ public class ProductDaoImpl implements ProductDao{
 		
 		return session.selectList("product.selectPage", dto);
 	}
+	
+	@Override
+	public List<ProductDto> selectPageWithoutQuantity(ProductDto dto) {
+		
+		return session.selectList("product.selectPageWithoutQuantity", dto);
+	}
 
 	@Override
 	public int getCount(ProductDto dto) {

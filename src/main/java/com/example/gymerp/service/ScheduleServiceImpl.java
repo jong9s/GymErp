@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.stereotype.Service;
@@ -157,31 +158,88 @@ public class ScheduleServiceImpl implements ScheduleService {
     public int updateSchedule(ScheduleDto schedule) {
         if (schedule == null) throw new IllegalArgumentException("요청 데이터가 없습니다.");
 
-        // VACATION: 자기 자신 제외 중복검사
+        // ✅ Long → int 안전 변환 (오버플로 시 즉시 예외로 데이터 정합성 보장)
+        if (schedule.getShNum() == null) {
+            throw new IllegalArgumentException("shNum이 없습니다.");
+        }
+        final int shNum = Math.toIntExact(schedule.getShNum());  // ← 핵심
+
+        // 기존 스케줄 조회 (int 사용)
+        ScheduleDto oldSchedule = scheduleDao.selectByShNum(shNum);
+
+        boolean wasPt = oldSchedule != null && "SCHEDULE-PT".equalsIgnoreCase(oldSchedule.getCodeBid());
+        boolean nowPt = "SCHEDULE-PT".equalsIgnoreCase(schedule.getCodeBid());
+
+        // VACATION: 자기 자신 제외 중복검사 (int 사용)
         if ("VACATION".equalsIgnoreCase(schedule.getCodeBid())) {
             int dup = scheduleDao.countVacationOverlapExcludingSelf(
                 schedule.getEmpNum(),
                 schedule.getStartTime(),
                 schedule.getEndTime(),
-                schedule.getShNum()
+                shNum
             );
             if (dup > 0) throw new IllegalStateException("해당 기간에 이미 휴가가 등록되어 있습니다.");
         }
 
-        // PT는 회원 필수
-        if ("SCHEDULE-PT".equalsIgnoreCase(schedule.getCodeBid()) && schedule.getMemNum() == null) {
+        // PT 일정은 회원 필수
+        if (nowPt && schedule.getMemNum() == null) {
             throw new IllegalStateException("PT 일정은 회원(memNum)이 필요합니다.");
         }
 
-        // 시간 겹침 금지 업데이트
+        // 시간 겹침 금지 업데이트 (schedule 객체는 그대로 사용)
         int updated = scheduleDao.updateIfNoOverlap(schedule);
         if (updated == 0) {
             throw new IllegalStateException("해당 트레이너의 같은 시간대에 이미 다른 일정이 있어 수정할 수 없습니다.");
         }
 
-        System.out.println("[일정 수정 완료] shNum=" + schedule.getShNum());
+        // PT → PT 이면서 회원 변경 시에만 추가 처리
+        if (wasPt && nowPt
+                && oldSchedule.getMemNum() != null
+                && !Objects.equals(oldSchedule.getMemNum(), schedule.getMemNum())) {
+
+            // ✅ regNum 조회에도 int 사용
+            Integer regNum = ptRegistrationService.findRegNumByShNum(shNum);
+            if (regNum == null) {
+                throw new IllegalStateException("등록된 PT 예약 정보가 없습니다.");
+            }
+
+            // 기존 회원 예약취소(+1)
+            PtLogDto cancelLog = PtLogDto.builder()
+                    .memNum(oldSchedule.getMemNum().longValue())
+                    .empNum((long) schedule.getEmpNum())
+                    .regId(regNum.longValue())
+                    .status("예약취소")
+                    .countChange(1L)
+                    .build();
+            logDao.insertPtCancelLog(cancelLog);
+
+            // REGISTRATION의 memNum을 새 회원으로 교체
+            ptRegistrationService.updateRegistrationMemNum(regNum, schedule.getMemNum());
+
+            // 새 회원 권리/잔여 PT 확인
+            Long newMem = schedule.getMemNum().longValue();
+            Integer voucherValid = session.selectOne("LogMapper.checkVoucherValid", newMem);
+            Integer remainingPt  = session.selectOne("LogMapper.selectRemainingPtCount", newMem);
+            if (voucherValid == null || voucherValid <= 0
+                    || remainingPt == null || remainingPt <= 0) {
+                throw new IllegalStateException("유효한 회원권이 없거나 남은 PT 회차가 없어 회원 변경을 수행할 수 없습니다.");
+            }
+
+            // 새 회원 소비(-1)
+            PtLogDto consumeLog = PtLogDto.builder()
+                    .memNum(newMem)
+                    .empNum((long) schedule.getEmpNum())
+                    .regId(regNum.longValue())
+                    .status("소비")
+                    .countChange(-1L)
+                    .build();
+            logDao.insertPtConsumeLog(consumeLog);
+        }
+
+        System.out.println("[일정 수정 완료] shNum=" + shNum);
         return updated;
     }
+
 
     // --------------------------- 삭제 ---------------------------
     @Override

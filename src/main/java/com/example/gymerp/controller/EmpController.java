@@ -1,21 +1,21 @@
 package com.example.gymerp.controller;
 
+import org.springframework.http.MediaType;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
-
 import org.springframework.http.ResponseEntity;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +24,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.util.StringUtils;
 
 import com.example.gymerp.config.FileStorageProperties;
 import com.example.gymerp.dto.EmpDto;
@@ -34,6 +34,7 @@ import com.example.gymerp.dto.MemberDto;
 import com.example.gymerp.security.CustomUserDetails;
 import com.example.gymerp.service.EmpService;
 import com.example.gymerp.service.SalesItemServiceImpl;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -73,13 +74,71 @@ public class EmpController {
         empService.insertEmp(dto);
         return "success";
     }
-
-    // 직원 수정
-    @PutMapping("/{empNum}")
-    public String update(@PathVariable int empNum, @RequestBody EmpDto dto) {
+    
+    // 직원 수정 
+    
+    //  2-1) 파일 없이 정보만 수정하거나 삭제만 할 때(JSON)
+    @PutMapping(value = "/{empNum}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateJson(@PathVariable int empNum, @RequestBody EmpDto dto) {
         dto.setEmpNum(empNum);
+        if (Boolean.TRUE.equals(dto.getRemoveProfile())) {
+            // 기존 파일 물리삭제(선택)
+            EmpDto before = empService.getEmpByNum(empNum);
+            String old = before != null ? before.getProfileImage() : null;
+            if (old != null) {
+                try {
+                    Path uploadDir = fileStorageProperties.prepareUploadDir();
+                    Files.deleteIfExists(uploadDir.resolve(old));
+                } catch (Exception ignore) {}
+            }
+            dto.setProfileImage(null); // DB에 기본 이미지 상태로
+        }
         empService.updateEmp(dto);
-        return "success";
+        return ResponseEntity.ok("success");
+    }
+
+    // 2-2) 새 사진까지 함께 저장할 때(멀티파트)
+    @PutMapping(value = "/{empNum}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateMultipart(
+            @PathVariable int empNum,
+            @RequestPart("emp") EmpDto dto,
+            @RequestPart(value = "profileFile", required = false) MultipartFile profileFile
+    ) throws IOException {
+        dto.setEmpNum(empNum);
+
+        EmpDto before = empService.getEmpByNum(empNum);
+        String old = before != null ? before.getProfileImage() : null;
+
+        if (Boolean.TRUE.equals(dto.getRemoveProfile())) {
+            if (old != null) {
+                try {
+                    Path uploadDir = fileStorageProperties.prepareUploadDir();
+                    Files.deleteIfExists(uploadDir.resolve(old));
+                } catch (Exception ignore) {}
+            }
+            dto.setProfileImage(null);
+        }
+
+        if (profileFile != null && !profileFile.isEmpty()) {
+            if (old != null) {
+                try {
+                    Path uploadDir = fileStorageProperties.prepareUploadDir();
+                    Files.deleteIfExists(uploadDir.resolve(old));
+                } catch (Exception ignore) {}
+            }
+            Path uploadDir = fileStorageProperties.prepareUploadDir();
+            String original = profileFile.getOriginalFilename();
+            String safeOriginal = StringUtils.hasText(original) ? original : "profile";
+            String fileName = empNum + "_" + System.currentTimeMillis() + "_" + safeOriginal;
+
+            Path target = uploadDir.resolve(fileName);
+            profileFile.transferTo(target.toFile());
+
+            dto.setProfileImage(fileName);
+        }
+
+        empService.updateEmp(dto);
+        return ResponseEntity.ok("success");
     }
 
     // 직원 삭제
@@ -187,32 +246,32 @@ public class EmpController {
     }
 
     
-    // 프로필이미지 업로드
-    @PostMapping("/upload/{empNum}")
-    public ResponseEntity<String> uploadProfile(
-            @PathVariable int empNum,
-            @RequestParam("file") MultipartFile file) {
-
-        try {
-            Path uploadDir = fileStorageProperties.prepareUploadDir();
-            String original = file.getOriginalFilename();
-            String safeOriginal = StringUtils.hasText(original) ? original : "profile";
-            String fileName = empNum + "_" + System.currentTimeMillis() + "_" + safeOriginal;
-
-            Path target = uploadDir.resolve(fileName);
-            file.transferTo(target.toFile());
-
-            // DB에 파일명 저장
-            empService.updateProfileImage(empNum, fileName);
-
-            // 프론트로 반환 (React에서 미리보기용)
-            return ResponseEntity.ok(fileName);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
-        }
-    }
+//    // 프로필이미지 업로드
+//    @PostMapping("/upload/{empNum}")
+//    public ResponseEntity<String> uploadProfile(
+//            @PathVariable int empNum,
+//            @RequestParam("file") MultipartFile file) {
+//
+//        try {
+//            Path uploadDir = fileStorageProperties.prepareUploadDir();
+//            String original = file.getOriginalFilename();
+//            String safeOriginal = StringUtils.hasText(original) ? original : "profile";
+//            String fileName = empNum + "_" + System.currentTimeMillis() + "_" + safeOriginal;
+//
+//            Path target = uploadDir.resolve(fileName);
+//            file.transferTo(target.toFile());
+//
+//            // DB에 파일명 저장
+//            empService.updateProfileImage(empNum, fileName);
+//
+//            // 프론트로 반환 (React에서 미리보기용)
+//            return ResponseEntity.ok(fileName);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
+//        }
+//    }
 
     
     // 특정 직원의 회원조회 API

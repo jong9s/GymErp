@@ -16,7 +16,7 @@
 	        </if>
 		</where>
 	</sql>
-	
+
 	<select id="selectPage" parameterType="productDto" resultType="productDto">
 		SELECT *
 		FROM (
@@ -67,8 +67,41 @@
 		WHERE rnum BETWEEN #{startRowNum} AND #{endRowNum}
 	</select>
 	
+	<select id="selectPageWithoutQuantity" parameterType="productDto" resultType="productDto">
+		SELECT *
+		FROM (
+		    SELECT result1.*, ROWNUM AS rnum
+		    FROM (
+		        SELECT
+		            pr.productId,
+		            pr.name,
+		            pr.price,
+		            pr.isActive,
+		            pr.codeBId,
+		            cb.name AS codeBName
+		        FROM product pr
+		        LEFT JOIN codeB cb ON pr.codeBId = cb.codeBId
+		        <include refid="search"/>
+		        <if test="sortBy != null and sortBy != ''">
+		            ORDER BY
+		            <choose>
+		                <when test="sortBy == 'codeBName'"> cb.name </when>
+		                <when test="sortBy == 'name'"> pr.name </when>
+		                <when test="sortBy == 'price'"> pr.price </when>
+		                <otherwise> pr.productId </otherwise>
+		            </choose>
+		            <choose>
+		                <when test="direction == 'DESC'"> DESC </when>
+		                <otherwise> ASC </otherwise>
+		            </choose>
+		        </if>
+		    ) result1
+		)
+		WHERE rnum BETWEEN #{startRowNum} AND #{endRowNum}
+	</select>
+	
 	<select id="getCount" parameterType="productDto" resultType="int">
-		SELECT NVL(MAX(ROWNUM), 0) AS count
+		SELECT COUNT(*)
 		FROM product pr
 		<include refid="search"/>
 	</select>
@@ -79,13 +112,13 @@
 		</selectKey>
 		INSERT INTO product
 		(productId, codeBId, name, price, isActive, createdAt, profileImage)
-		VALUES(#{productId}, #{codeBId}, #{name}, #{price}, #{isActive}, SYSDATE, #{profileImage, jdbcType=VARCHAR})
+		VALUES(#{productId}, #{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{profileImage, jdbcType=VARCHAR})
 	</insert>
 	
 	<update id="update" parameterType="productDto">
 		UPDATE product
 		SET codeBId=#{codeBId}, name=#{name}, price=#{price}, isActive=#{isActive},
-			updatedAt=SYSDATE, note=#{note}
+			updatedAt=#{updatedAt}, note=#{note}
 			
 			<if test="profileImage != null">, profileImage=#{profileImage}</if>
 			

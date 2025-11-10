@@ -85,6 +85,7 @@ public class SalesServiceDaoImpl implements SalesServiceDao {
     // [서비스 매출 통계 조회]
     // ===============================
 
+    // 기간 / 품목명 / 회원 / 직원 기준 서비스 매출 합계 조회
     @Override
     public List<Map<String, Object>> selectServiceSalesAnalytics(Map<String, Object> params) {
         return sqlSession.selectList("SalesServiceMapper.selectServiceSalesAnalytics", params);

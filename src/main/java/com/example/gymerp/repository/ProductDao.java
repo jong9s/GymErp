@@ -7,6 +7,7 @@ import com.example.gymerp.dto.ProductDto;
 public interface ProductDao {
 
 	public List<ProductDto> selectPage(ProductDto dto);
+	public List<ProductDto> selectPageWithoutQuantity(ProductDto dto);
 	public int getCount(ProductDto dto);
 
 	public void insert(ProductDto dto);

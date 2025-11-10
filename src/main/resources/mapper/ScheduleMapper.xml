@@ -141,13 +141,12 @@
         e.empName,
         cb.name AS codeBName,
         m.memName,
-        m.memNum,
         ROW_NUMBER() OVER (ORDER BY s.startTime DESC) AS rn
       FROM SCHEDULE s
 		  JOIN Employee e ON s.empNum = e.empNum
 		  LEFT JOIN CodeB cb ON s.codeBid = cb.codeBid
 		  LEFT JOIN Member m ON s.memNum = m.memNum
-      <where>
+      <where>	
         <if test="codeBid != null and codeBid != ''">
           s.codeBid = #{codeBid}
         </if>

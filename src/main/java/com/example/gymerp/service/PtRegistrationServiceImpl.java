@@ -1,6 +1,8 @@
 package com.example.gymerp.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.time.LocalDateTime;
 
 import org.apache.ibatis.session.SqlSession;
@@ -81,6 +83,22 @@ public class PtRegistrationServiceImpl implements PtRegistrationService {
         System.out.println("[findRegNumByShNum 호출] shNum=" + shNum);
     return sessionT.selectOne("PtRegistrationMapper.findRegNumByShNum", shNum);
     }
+
+    // 등록된 회원 번호 변경
+	@Override
+	public void updateRegistrationMemNum(int regNum, Long newMemNum) {
+		if(newMemNum == null) {
+			throw new IllegalArgumentException("수정할 회원을 지정해야합니다");
+		}
+		Map<String, Object> params = new HashMap<>();
+		params.put("regNum", regNum);
+		params.put("newMemNum", newMemNum);
+		int updated = session.update("PtRegistrationMapper.updateRegistrationMemNum", params);
+		if(updated == 0) {
+			throw new IllegalStateException("PT 등록번호" + regNum + "에 대한 업데이트가 실패했습니다");
+		}
+		
+	}
 
 	
 }

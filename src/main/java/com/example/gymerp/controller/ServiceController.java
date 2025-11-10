@@ -1,5 +1,7 @@
 package com.example.gymerp.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -62,7 +64,7 @@ public class ServiceController {
 	
 	//서비스 상품 판매 상태 변경
 	@PatchMapping("/service/{serviceId}")
-	public ResponseEntity<Void> updateProductStatus(
+	public ResponseEntity<Map<String, Object>> updateProductStatus(
 			@PathVariable int serviceId, 
             @RequestBody ServiceDto dto
 			){
@@ -71,7 +73,7 @@ public class ServiceController {
         }
 		
 		serviceService.updateServiceStatus(serviceId, dto.getIsActive());
-		
-		return ResponseEntity.ok().build();
+		Map<String, Object> responseBody = Map.of("message", "판매 상태 변경에 성공했습니다.");
+		return ResponseEntity.ok(responseBody);
   }
 }

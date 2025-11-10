@@ -103,38 +103,43 @@
 <!-- =========================================== 추가 ================================================== -->
 	
 	<!-- 조건을 모두 만족할 때만 REGISTRATION INSERT -->
-<insert id="insertRegistrationIfAllowed" parameterType="com.example.gymerp.dto.PtRegistrationDto">
-  <selectKey keyProperty="regNum" resultType="long" order="BEFORE">
-    SELECT REGISTRATION_SEQ.NEXTVAL FROM DUAL
-  </selectKey>
-  INSERT INTO REGISTRATION (
-    REGNUM, EMPNUM, MEMNUM, SHNUM, REGCREATED, REGUPDATEDAT, REGNOTE
-  )
-  SELECT
-    #{regNum}, #{empNum}, #{memNum}, #{shNum}, SYSTIMESTAMP, SYSTIMESTAMP, #{regNote}
-  FROM dual
-  WHERE
-    /* 유효 회원권 존재 */
-    EXISTS (
-      SELECT 1 FROM voucher_log
-      WHERE memNum = #{memNum}
-        AND endDate >= SYSDATE
-    )
-    /* 잔여 PT > 0 */
-    AND (
-      SELECT NVL(SUM(countChange), 0)
-      FROM pt_log
-      WHERE memNum = #{memNum}
-    ) > 0
-    /* shNum 중복 없음 */
-    AND NOT EXISTS (
-      SELECT 1 FROM REGISTRATION
-      WHERE shNum = #{shNum}
-    )
-</insert>
+	<insert id="insertRegistrationIfAllowed" parameterType="com.example.gymerp.dto.PtRegistrationDto">
+	  <selectKey keyProperty="regNum" resultType="long" order="BEFORE">
+	    SELECT REGISTRATION_SEQ.NEXTVAL FROM DUAL
+	  </selectKey>
+	  INSERT INTO REGISTRATION (
+	    REGNUM, EMPNUM, MEMNUM, SHNUM, REGCREATED, REGUPDATEDAT, REGNOTE
+	  )
+	  SELECT
+	    #{regNum}, #{empNum}, #{memNum}, #{shNum}, SYSTIMESTAMP, SYSTIMESTAMP, #{regNote}
+	  FROM dual
+	  WHERE
+	    /* 유효 회원권 존재 */
+	    EXISTS (
+	      SELECT 1 FROM voucher_log
+	      WHERE memNum = #{memNum}
+	        AND endDate >= SYSDATE
+	    )
+	    /* 잔여 PT > 0 */
+	    AND (
+	      SELECT NVL(SUM(countChange), 0)
+	      FROM pt_log
+	      WHERE memNum = #{memNum}
+	    ) > 0
+	    /* shNum 중복 없음 */
+	    AND NOT EXISTS (
+	      SELECT 1 FROM REGISTRATION
+	      WHERE shNum = #{shNum}
+	    )
+	</insert>
 
 <!-- ============================================================================================= -->
-
+	  <!-- 등록 번호에 대한 회원 번호 갱신 -->
+  <update id="updateRegistrationMemNum" parameterType="map">
+      UPDATE REGISTRATION
+         SET memNum = #{newMemNum}
+       WHERE regNum = #{regNum}
+  </update>
 
 	
 </mapper>
