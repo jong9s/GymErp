@@ -27,8 +27,8 @@ public class GymErpApplication {
 		SpringApplication.run(GymErpApplication.class, args);
 	}
 
-	 @PostConstruct                                   // ✅ JVM 기본 TZ를 KST로 고정
-	    public void setTimeZone() {
-	        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-	    }
+	@PostConstruct                                
+    public void setTimeZone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
+    }
 }

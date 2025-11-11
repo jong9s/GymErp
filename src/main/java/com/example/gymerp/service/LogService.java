@@ -49,8 +49,6 @@ public interface LogService {
 
     // 특정 회원의 남은 PT 횟수 조회
     int getRemainingPtCount(long memNum);
-    
-    PtLogDto getPtLogByRefundId(long refundId);
 
     // 특정 판매내역(salesId) 기준 PT 로그 조회 (수정 시 기준)
     PtLogDto getPtLogBySalesId(long salesId);
