@@ -7,6 +7,9 @@ import com.example.gymerp.dto.VoucherLogDto;
 import com.example.gymerp.repository.LogDao;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class LogServiceImpl implements LogService {
@@ -56,6 +59,19 @@ public class LogServiceImpl implements LogService {
     public void fullRefundVoucherLog(VoucherLogDto dto) {
         logDao.fullRefundVoucherLog(dto);
     }
+
+    // 회원권 로그 리스트 조회 (기간/회원/페이징)
+    @Override
+    public List<Map<String, Object>> getPagedVoucherLogs(Map<String, Object> params) {
+        return logDao.selectPagedVoucherLogs(params);
+    }
+
+    // 회원권 로그 전체 카운트
+    @Override
+    public int getVoucherTotalCount(Map<String, Object> params) {
+        return logDao.selectVoucherTotalCount(params);
+    }
+
 
 
     // ===============================
@@ -113,5 +129,17 @@ public class LogServiceImpl implements LogService {
     @Transactional
     public void updatePtChargeCount(PtLogDto dto) {
         logDao.updatePtChargeCount(dto);
+    }
+
+    // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    @Override
+    public List<Map<String, Object>> getPagedPtLogs(Map<String, Object> params) {
+        return logDao.selectPagedPtLogs(params);
+    }
+
+    // PT 로그 전체 카운트
+    @Override
+    public int getPtTotalCount(Map<String, Object> params) {
+        return logDao.selectPtTotalCount(params);
     }
 }

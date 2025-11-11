@@ -54,7 +54,7 @@ public class ProductController {
 		
 	//실물 상품 등록
 	@PostMapping("/product")
-	public void createProduct(ProductDto dto) {
+	public void createProduct(@ModelAttribute ProductDto dto) {
 		new StockAdjustRequestDto();
 		StockAdjustRequestDto request = StockAdjustRequestDto.builder()
 				.action("ADD")

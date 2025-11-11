@@ -45,6 +45,7 @@
 		        LEFT JOIN (
 		            SELECT productId, SUM(quantity) AS total_sales
 		            FROM SALES_ITEM
+		            WHERE status='ACTIVE'
 		            GROUP BY productId
 		        ) si ON pr.productId = si.productId
 		        <include refid="search"/>
@@ -111,8 +112,8 @@
 			SELECT product_seq.NEXTVAL FROM DUAL
 		</selectKey>
 		INSERT INTO product
-		(productId, codeBId, name, price, isActive, createdAt, profileImage)
-		VALUES(#{productId}, #{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{profileImage, jdbcType=VARCHAR})
+		(productId, codeBId, name, price, isActive, createdAt, profileImage, note)
+		VALUES(#{productId}, #{codeBId}, #{name}, #{price}, #{isActive}, #{createdAt}, #{profileImage, jdbcType=VARCHAR}, #{note, jdbcType=VARCHAR})
 	</insert>
 	
 	<update id="update" parameterType="productDto">

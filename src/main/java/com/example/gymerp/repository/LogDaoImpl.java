@@ -9,6 +9,7 @@ import com.example.gymerp.dto.VoucherLogDto;
 
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 @Primary
@@ -70,6 +71,18 @@ public class LogDaoImpl implements LogDao {
         return sqlSession.update("LogMapper.extendVoucherPeriod", params);
     }
 
+    // 회원권 로그 리스트 조회 (기간/회원/페이징)
+    @Override
+    public List<Map<String, Object>> selectPagedVoucherLogs(Map<String, Object> params) {
+        return sqlSession.selectList("LogMapper.selectPagedVoucherLogs", params);
+    }
+
+    // 회원권 로그 전체 카운트
+    @Override
+    public int selectVoucherTotalCount(Map<String, Object> params) {
+        return sqlSession.selectOne("LogMapper.selectVoucherTotalCount", params);
+    }
+
 
 
     // ===============================
@@ -126,8 +139,20 @@ public class LogDaoImpl implements LogDao {
 
     // 해당 차례 이후 실제 PT 사용 여부 확인
     @Override
-    public int getUsedCountBySalesId(long salesId) {
-        return sqlSession.selectOne("LogMapper.getUsedCountBySalesId", salesId);
+    public int getUsedCountBySalesId(Map<String, Object> params) {
+        return sqlSession.selectOne("LogMapper.getUsedCountBySalesId", params);
+    }
+
+    // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    @Override
+    public List<Map<String, Object>> selectPagedPtLogs(Map<String, Object> params) {
+        return sqlSession.selectList("LogMapper.selectPagedPtLogs", params);
+    }
+
+    // PT 로그 전체 카운트
+    @Override
+    public int selectPtTotalCount(Map<String, Object> params) {
+        return sqlSession.selectOne("LogMapper.selectPtTotalCount", params);
     }
 
 

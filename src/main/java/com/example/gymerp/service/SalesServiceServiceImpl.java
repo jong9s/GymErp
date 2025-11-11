@@ -50,7 +50,12 @@ public class SalesServiceServiceImpl implements SalesServiceService {
     @Override
     @Transactional
     public int createSalesService(SalesService salesService) {
-        String memberName = memberDao.selectMemberNameById(salesService.getMemNum().intValue());
+    	//  0일권 / 0회권 방지 검증
+    	if (salesService.getActualCount() == null || salesService.getActualCount() <= 0) {
+            throw new IllegalArgumentException("회원권 또는 PT 상품은 1 이상이어야 합니다. (0은 등록 불가)");
+        }
+    	
+    	String memberName = memberDao.selectMemberNameById(salesService.getMemNum().intValue());
         String trainerName = empDao.selectEmployeeNameById(salesService.getEmpNum().intValue());
 
         // 판매 내역을 먼저 등록 (시퀀스 생성)
@@ -58,6 +63,8 @@ public class SalesServiceServiceImpl implements SalesServiceService {
 
         // 방금 생성된 PK
         Long newSalesId = salesService.getServiceSalesId();
+        
+        DateTimeFormatter oracleFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         if ("VOUCHER".equalsIgnoreCase(salesService.getServiceType())) {
             // 기존 회원권 조회
@@ -70,23 +77,27 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 LocalDateTime endDate = startDate.plusDays(salesService.getActualCount());
 
                 VoucherLogDto newVoucher = VoucherLogDto.builder()
-                        .memNum(salesService.getMemNum())
-                        .memberName(memberName)
-                        .startDate(startDate.toString())
-                        .endDate(endDate.toString())
-                        .build();
+                    .memNum(salesService.getMemNum())
+                    .memberName(memberName)
+                    .startDate(startDate.format(oracleFmt))
+                    .endDate(endDate.format(oracleFmt))
+                    .build();
 
                 logService.insertVoucherLog(newVoucher);
                 System.out.println("[VOUCHER] 신규 회원권 등록 완료 (" + startDate + " ~ " + endDate + ")");
             }
 
             // Case 2. 기존 회원권 있음 + 만료됨(endDate < now) → 재시작
-            else if (LocalDateTime.parse(existingVoucher.getEndDate()).isBefore(now)) {
+            else if (LocalDateTime.parse(
+                    existingVoucher.getEndDate(),
+                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                ).isBefore(now)) {
+
                 LocalDateTime startDate = now;
                 LocalDateTime endDate = startDate.plusDays(salesService.getActualCount());
 
-                existingVoucher.setStartDate(startDate.toString());
-                existingVoucher.setEndDate(endDate.toString());
+                existingVoucher.setStartDate(startDate.format(oracleFmt));
+                existingVoucher.setEndDate(endDate.format(oracleFmt));
 
                 logService.extendVoucherLog(existingVoucher);
                 System.out.println("[VOUCHER] 만료 회원권 재시작 (" + startDate + " ~ " + endDate + ")");
@@ -94,10 +105,13 @@ public class SalesServiceServiceImpl implements SalesServiceService {
 
             // Case 3. 기존 회원권 있음 + 유효함(endDate ≥ now) → 기존 endDate 기준 연장
             else {
-                LocalDateTime currentEnd = LocalDateTime.parse(existingVoucher.getEndDate());
+            	LocalDateTime currentEnd = LocalDateTime.parse(
+            		    existingVoucher.getEndDate(),
+            		    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            		);
                 LocalDateTime newEndDate = currentEnd.plusDays(salesService.getActualCount());
 
-                existingVoucher.setEndDate(newEndDate.toString());
+                existingVoucher.setEndDate(newEndDate.format(oracleFmt));
 
                 logService.extendVoucherLog(existingVoucher);
                 System.out.println("[VOUCHER] 유효 회원권 연장 (" + existingVoucher.getStartDate() + " ~ " + newEndDate + ")");
@@ -184,9 +198,9 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 Map<String, Object> params = new HashMap<>();
                 params.put("memNum", existing.getMemNum());
                 params.put("salesId", existing.getServiceSalesId());
-                int turnReached = logDao.checkPtTurnReached(params);
 
-                int usedCount = logDao.getUsedCountBySalesId(existing.getServiceSalesId());
+                int turnReached = logDao.checkPtTurnReached(params);
+                int usedCount = logDao.getUsedCountBySalesId(params); // ✅ 수정됨
 
                 int refundableCount = oldCount - usedCount;
                 if (refundCount > refundableCount)
@@ -204,7 +218,6 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 logDao.insertPtPartialRefundLog(refundLog);
                 System.out.println("[PT] 부분환불 완료 → -" + refundCount + "회");
             }
-
         }
 
         // B. VOUCHER 상품 (일수 변경)
@@ -285,9 +298,9 @@ public class SalesServiceServiceImpl implements SalesServiceService {
             Map<String, Object> params = new HashMap<>();
             params.put("memNum", sale.getMemNum());
             params.put("salesId", sale.getServiceSalesId());
+            
             int turnReached = logDao.checkPtTurnReached(params);
-            int remaining = logDao.selectRemainingPtCount(sale.getMemNum());
-            int usedCount = logDao.getUsedCountBySalesId(sale.getServiceSalesId());
+            int usedCount = logDao.getUsedCountBySalesId(params); // ✅ 수정됨
 
             boolean refundable = usedCount == 0;
             if (!refundable)

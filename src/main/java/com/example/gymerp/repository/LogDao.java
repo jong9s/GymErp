@@ -3,6 +3,7 @@ package com.example.gymerp.repository;
 import com.example.gymerp.dto.PtLogDto;
 import com.example.gymerp.dto.VoucherLogDto;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -36,6 +37,12 @@ public interface LogDao {
     // 회원권 연장 (기존 endDate + N일 추가)
     int extendVoucherPeriod(Map<String, Object> params);
 
+    // 회원권 로그 리스트 조회 (기간/회원/페이징)
+    List<Map<String, Object>> selectPagedVoucherLogs(Map<String, Object> params);
+
+    // 회원권 로그 전체 카운트
+    int selectVoucherTotalCount(Map<String, Object> params);
+
 
 
     // ===============================
@@ -67,7 +74,13 @@ public interface LogDao {
     int checkPtTurnReached(Map<String, Object> params);
 
     // 해당 차례 이후 실제 사용 여부 확인
-    int getUsedCountBySalesId(long salesId);
+    int getUsedCountBySalesId(Map<String, Object> params);
+
+    // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    List<Map<String, Object>> selectPagedPtLogs(Map<String, Object> params);
+
+    // PT 로그 전체 카운트
+    int selectPtTotalCount(Map<String, Object> params);
 
 
 

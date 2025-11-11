@@ -2,6 +2,8 @@ package com.example.gymerp.service;
 
 import com.example.gymerp.dto.PtLogDto;
 import com.example.gymerp.dto.VoucherLogDto;
+import java.util.List;
+import java.util.Map;
 
 // [LogService 인터페이스]
 // - 회원권 및 PT 로그 관련 모든 서비스 로직의 상위 인터페이스
@@ -30,6 +32,13 @@ public interface LogService {
     // 회원권 전체환불 (미사용 상태에서 endDate 단축)
     void fullRefundVoucherLog(VoucherLogDto dto);
 
+    // 회원권 로그 리스트 조회 (기간/회원/페이징)
+    List<Map<String, Object>> getPagedVoucherLogs(Map<String, Object> params);
+
+    // 회원권 로그 전체 카운트
+    int getVoucherTotalCount(Map<String, Object> params);
+
+
 
     // ===============================
     // [PT 로그 관련]
@@ -56,6 +65,15 @@ public interface LogService {
     // 기존 PT 충전 로그의 countChange 수정 (연장 시 누적 업데이트)
     void updatePtChargeCount(PtLogDto dto);
 
+    /** ✅ 환불 ID(refundId)로 PT 로그 조회 */
     // 환불 ID(refundId)로 PT 로그 조회
     PtLogDto getPtLogByRefundId(long refundId);
+
+    // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    List<Map<String, Object>> getPagedPtLogs(Map<String, Object> params);
+
+    // PT 로그 전체 카운트
+    int getPtTotalCount(Map<String, Object> params);
+    
+  
 }
