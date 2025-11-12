@@ -158,11 +158,11 @@ public class ScheduleServiceImpl implements ScheduleService {
     public int updateSchedule(ScheduleDto schedule) {
         if (schedule == null) throw new IllegalArgumentException("요청 데이터가 없습니다.");
 
-        // ✅ Long → int 안전 변환 (오버플로 시 즉시 예외로 데이터 정합성 보장)
+        // Long → int 안전 변환 (오버플로 시 즉시 예외로 데이터 정합성 보장)
         if (schedule.getShNum() == null) {
             throw new IllegalArgumentException("shNum이 없습니다.");
         }
-        final int shNum = Math.toIntExact(schedule.getShNum());  // ← 핵심
+        final int shNum = Math.toIntExact(schedule.getShNum());  
 
         // 기존 스케줄 조회 (int 사용)
         ScheduleDto oldSchedule = scheduleDao.selectByShNum(shNum);

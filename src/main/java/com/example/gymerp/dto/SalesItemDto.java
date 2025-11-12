@@ -31,5 +31,6 @@ public class SalesItemDto {
     private LocalDateTime updatedAt; // 수정일
     
     private String empEmail;
+    private String empName;
     
 }

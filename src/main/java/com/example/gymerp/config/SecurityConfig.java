@@ -33,6 +33,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable()) // 🔹 CSRF 비활성화 (테스트용)
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 🔹 React CORS 설정
             .authorizeHttpRequests(auth -> auth
+            	.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers(SWAGGER).permitAll() // Swagger 허용
                 .requestMatchers("/upload/**").permitAll()
                 .requestMatchers("/v1/emp/login", "/v1/emp/logout", "/v1/member/**", "/v1/sales/**").permitAll() // 로그인 허용
@@ -52,10 +53,11 @@ public class SecurityConfig {
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    // 인증 메니저 Bean 등록
+    
+    
     @Bean
-    AuthenticationManager authenticationManager(HttpSecurity http, BCryptPasswordEncoder encoder,
+    AuthenticationManager authenticationManager(HttpSecurity http,
+                                               PasswordEncoder encoder,   // ← 여기만 PasswordEncoder로
                                                UserDetailsService service) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
                    .userDetailsService(service)
@@ -63,7 +65,7 @@ public class SecurityConfig {
                    .and()
                    .build();
     }
-
+    
     // REACT(React:5173)에서의 요청 허용
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -71,13 +73,11 @@ public class SecurityConfig {
 
         // Vite 개발 서버
         // Swagger (Spring 내부)
-        config.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:9000", "https://jong9.kro.kr", "https://www.jong9.kro.kr")); 
+        config.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:9000", "https://jong9.kro.kr", "https://www.jong9.kro.kr", "https://dumbi.store", "https://www.dumbi.store")); 
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-
-
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

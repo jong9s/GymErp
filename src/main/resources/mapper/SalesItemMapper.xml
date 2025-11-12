@@ -69,7 +69,7 @@
 		cb.name AS categoryName,
 		si.productType,
 		si.empNum,
-		e.empEmail AS empEmail,      <!-- ✅ 판매자 이메일 -->
+		e.empName AS empName,      <!-- ✅ 판매자 이름으로 변경 -->
 		si.quantity,
 		si.unitPrice,
 		si.totalAmount,
@@ -96,7 +96,7 @@
 		cb.name AS categoryName,
 		si.productType,
 		si.empNum,
-		e.empEmail AS empEmail,        <!-- ✅ 판매자 이메일 -->
+		e.empName AS empName,        <!-- ✅ 판매자 이름으로 변경 -->
 		si.quantity,
 		si.unitPrice,
 		si.totalAmount,

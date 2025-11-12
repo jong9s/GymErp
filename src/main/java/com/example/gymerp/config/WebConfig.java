@@ -19,10 +19,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String resourceLocation = fileStorageProperties.prepareUploadDir().toUri().toString();
+        if (!resourceLocation.endsWith("/")) {
+            resourceLocation += "/";
+        }
 
         registry.addResourceHandler("/profile/**")
-			.addResourceLocations(resourceLocation);
-
+                .addResourceLocations(resourceLocation);
     }
     
     //put 요청 시 파일처리

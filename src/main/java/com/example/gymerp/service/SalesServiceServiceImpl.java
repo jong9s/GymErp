@@ -168,7 +168,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
             int newCount = salesService.getActualCount();
 
             // 동일하면 변경 없음
-            if (oldCount == newCount) return 1;
+            //if (oldCount == newCount) return 1;
 
             // 1. 연장 (횟수 증가)
             if (newCount > oldCount) {
@@ -228,7 +228,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
             int oldDays = existing.getActualCount();
             int newDays = salesService.getActualCount();
 
-            if (oldDays == newDays) return 1;
+            //if (oldDays == newDays) return 1;
 
             LocalDate now = LocalDate.now();
             LocalDate endDate = LocalDateTime.parse(
@@ -277,8 +277,31 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 System.out.println("[VOUCHER] 부분환불 완료 → -" + refundDays + "일");
             }
         }
+        
+        existing.setEmpNum(salesService.getEmpNum());
+        existing.setServiceName(salesService.getServiceName());
+        existing.setBaseCount(salesService.getBaseCount());
+        existing.setActualCount(salesService.getActualCount());
+        existing.setDiscount(salesService.getDiscount());
+        existing.setBaseAmount(salesService.getBaseAmount());
+        existing.setActualAmount(salesService.getActualAmount());
+        
+        System.out.println("=== [DEBUG] updateSalesService() 전달 값 확인 ===");
+        System.out.println("serviceSalesId : " + existing.getServiceSalesId());
+        System.out.println("serviceName    : " + existing.getServiceName());
+        System.out.println("serviceType    : " + existing.getServiceType());
+        System.out.println("empNum         : " + existing.getEmpNum());
+        System.out.println("baseCount      : " + existing.getBaseCount());
+        System.out.println("actualCount    : " + existing.getActualCount());
+        System.out.println("baseAmount     : " + existing.getBaseAmount());
+        System.out.println("discount       : " + existing.getDiscount());
+        System.out.println("actualAmount   : " + existing.getActualAmount());
+        System.out.println("memNum         : " + existing.getMemNum());
+        System.out.println("updatedAt      : " + LocalDateTime.now());
+        System.out.println("===========================================");
 
-        salesServiceDao.updateSalesService(salesService);
+
+        salesServiceDao.updateSalesService(existing);
         return 1;
     }
 

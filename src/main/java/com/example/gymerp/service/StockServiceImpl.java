@@ -1,5 +1,8 @@
 package com.example.gymerp.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -162,24 +165,30 @@ public class StockServiceImpl implements StockService {
 
 	    // 3) ADD / SUBTRACT에 따라 각각 Purchase, StockAdjustment 테이블에 기록
 	    if ("ADD".equalsIgnoreCase(action)) { // 대소문자 무시하고 문자열 비교 
+	    	ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+			LocalDateTime ldt = zdt.toLocalDateTime();
+	    	
 	        PurchaseDto purchase = PurchaseDto.builder()
 	        		.productId(productId)
 	        		.codeBId(codeBId) 
 	        		.quantity(request.getQuantity())
 	        		.notes(request.getNotes())
-	        		.createdAt(request.getDate()) // 날짜 설정 추가
+	        		.createdAt(ldt) // 날짜 설정 추가
 	        		.build();
 	        int inserted = stockDao.insertPurchase(purchase); // call DaoImpl 3-1
 	        if (inserted != 1) {
 	            throw new IllegalStateException("입고 등록에 실패했습니다.");
 	        }
 	    } else if ("SUBTRACT".equalsIgnoreCase(action)) {
+	    	ZonedDateTime zdt = ZonedDateTime.now(ZoneId.of("Asia/Seoul"));
+			LocalDateTime ldt = zdt.toLocalDateTime();
+	    	
 	        StockAdjustmentDto adjust = StockAdjustmentDto.builder()
 	        		.productId(productId)
 	        		.codeBId(codeBId) 
 	        		.quantity(request.getQuantity())
 	        		.notes(request.getNotes())
-	        		.createdAt(request.getDate()) // 날짜 설정 추가
+	        		.createdAt(ldt) // 날짜 설정 추가
 	        		.build();
 	        int inserted = stockDao.insertStockAdjustment(adjust); // call DaoImpl 3-2
 	        if (inserted != 1) {
