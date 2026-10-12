@@ -1,0 +1,15 @@
+Plan hash value: 3054616520
+--------------------------------------------------------------------
+| Id  | Operation		   | Name     | Rows  | Cost (%CPU)|
+--------------------------------------------------------------------
+|   0 | SELECT STATEMENT	   |	      |  1000K| 15289	(1)|
+|   1 |  VIEW			   |	      |  1000K| 15289	(1)|
+|   2 |   COUNT 		   |	      |       | 	   |
+|   3 |    VIEW 		   |	      |  1000K| 15289	(1)|
+|   4 |     SORT ORDER BY	   |	      |  1000K| 15289	(1)|
+|   5 |      HASH JOIN RIGHT OUTER |	      |  1000K|  3363	(1)|
+|   6 |       TABLE ACCESS FULL    | EMPLOYEE |    50 |     3	(0)|
+|   7 |       HASH JOIN RIGHT OUTER|	      |  1000K|  3357	(1)|
+|   8 |        TABLE ACCESS FULL   | MEMBER   |   100K|   455	(1)|
+|   9 |        TABLE ACCESS FULL   | PT_LOG   |  1000K|  1575	(1)|
+--------------------------------------------------------------------

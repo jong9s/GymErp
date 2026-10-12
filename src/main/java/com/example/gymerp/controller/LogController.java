@@ -73,6 +73,7 @@ public class LogController {
         Map<String, Object> params = new HashMap<>();
         params.put("offset", offset);
         params.put("limit", limit);
+        params.put("endRow", offset + limit);
         if (startDate != null && !startDate.isBlank()) params.put("startDate", startDate);
         if (endDate != null && !endDate.isBlank()) params.put("endDate", endDate);
         if (memNum != null) params.put("memNum", memNum);
@@ -80,11 +81,6 @@ public class LogController {
 
         List<Map<String, Object>> list = logService.getPagedVoucherLogs(params);
         int totalCount = logService.getVoucherTotalCount(params);
-        
-        //  디버깅 로그 추가
-        System.out.println("📘 [Voucher] 요청 파라미터: " + params);
-        System.out.println("📘 [Voucher] 조회 결과 (" + list.size() + "건):");
-        list.forEach(row -> System.out.println("   ▶ " + row));
 
 
         Map<String, Object> result = new HashMap<>();
@@ -136,38 +132,40 @@ public class LogController {
         return Map.of("memNum", memNum, "remainingCount", remaining);
     }
 
- // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    // PT 로그 리스트 조회 (기간/회원/직원/페이징)
+    // - page: 기존 OFFSET 방식 (페이지 번호 이동용)
+    // - cursor: 직전 응답의 nextCursor 를 넘기면 키셋 페이징 ("더 보기"/무한 스크롤용, 깊은 페이지도 일정한 속도)
     @GetMapping("/pt/paged")
     public Map<String, Object> getPagedPtLogs(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             @RequestParam(required = false) Long memNum,
             @RequestParam(required = false) Long empNum,
+            @RequestParam(required = false) Long cursor,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int limit
     ) {
-        int offset = (page - 1) * limit;
+        int offset = cursor != null ? 0 : (page - 1) * limit;
 
         Map<String, Object> params = new HashMap<>();
         params.put("offset", offset);
         params.put("limit", limit);
+        params.put("endRow", offset + limit);
+        if (cursor != null) params.put("cursor", cursor);
         if (startDate != null && !startDate.isBlank()) params.put("startDate", startDate);
         if (endDate != null && !endDate.isBlank()) params.put("endDate", endDate);
         if (memNum != null) params.put("memNum", memNum);
         if (empNum != null) params.put("empNum", empNum);
 
         List<Map<String, Object>> list = logService.getPagedPtLogs(params);
-        int totalCount = logService.getPtTotalCount(params);
-        
-        //  디버깅 로그 추가
-        System.out.println("📗 [PT] 요청 파라미터: " + params);
-        System.out.println("📗 [PT] 조회 결과 (" + list.size() + "건):");
-        list.forEach(row -> System.out.println("   ▶ " + row));
 
         Map<String, Object> result = new HashMap<>();
         result.put("list", list);
-        result.put("totalCount", totalCount);
-
+        result.put("nextCursor", list.size() < limit ? null : list.get(list.size() - 1).get("USAGEID"));
+        // 키셋 페이징("더 보기")에서는 전체 건수가 필요 없으므로 COUNT 쿼리 생략
+        if (cursor == null) {
+            result.put("totalCount", logService.getPtTotalCount(params));
+        }
         return result;
     }
 

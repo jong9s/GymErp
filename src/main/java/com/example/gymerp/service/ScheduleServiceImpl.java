@@ -17,7 +17,9 @@ import com.example.gymerp.repository.LogDao;
 import com.example.gymerp.repository.ScheduleDao;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ScheduleServiceImpl implements ScheduleService {
@@ -95,7 +97,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         if (inserted == 0) {
             throw new IllegalStateException("해당 트레이너의 같은 시간대에 이미 일정이 있습니다.");
         }
-        System.out.println("[일정 등록 완료] shNum=" + schedule.getShNum() + ", codeBid=" + schedule.getCodeBid());
+        log.info("[일정 등록 완료] shNum={}, codeBid={}", schedule.getShNum(), schedule.getCodeBid());
 
         // (C) PT가 아니면 여기서 끝
         if (!"SCHEDULE-PT".equalsIgnoreCase(schedule.getCodeBid())) {
@@ -111,7 +113,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         Long mem = schedule.getMemNum().longValue();
         Integer voucherValid = session.selectOne("LogMapper.checkVoucherValid", mem);
         Integer remainingPt  = session.selectOne("LogMapper.selectRemainingPtCount", mem);
-        System.out.printf("[사전체크] memNum=%d, voucherValid=%d, remainingPt=%d%n",
+        log.info("[사전체크] memNum={}, voucherValid={}, remainingPt={}",
                 mem,
                 (voucherValid == null ? 0 : voucherValid),
                 (remainingPt == null ? 0 : remainingPt));
@@ -126,14 +128,14 @@ public class ScheduleServiceImpl implements ScheduleService {
 
         int rows = session.insert("PtRegistrationMapper.insertRegistrationIfAllowed", reg);
         if (rows == 0) {
-            System.out.printf("[차단사유] memNum=%d, voucherValid=%d, remainingPt=%d, shNum=%d%n",
+            log.info("[차단사유] memNum={}, voucherValid={}, remainingPt={}, shNum={}",
                     mem,
                     (voucherValid == null ? 0 : voucherValid),
                     (remainingPt == null ? 0 : remainingPt),
                     schedule.getShNum());
             throw new IllegalStateException("유효한 회원권이 없거나 잔여 PT 회차가 없거나 이미 등록된 일정입니다.");
         }
-        System.out.println("[PT 예약 등록 완료] regNum=" + reg.getRegNum());
+        log.info("[PT 예약 등록 완료] regNum={}", reg.getRegNum());
 
         // (G) PT_LOG 소비 -1 (동시성까지 DB에서 보장)
         PtLogDto consume = PtLogDto.builder()
@@ -236,7 +238,7 @@ public class ScheduleServiceImpl implements ScheduleService {
             logDao.insertPtConsumeLog(consumeLog);
         }
 
-        System.out.println("[일정 수정 완료] shNum=" + shNum);
+        log.info("[일정 수정 완료] shNum={}", shNum);
         return updated;
     }
 
@@ -249,7 +251,7 @@ public class ScheduleServiceImpl implements ScheduleService {
         ScheduleDto target = scheduleDao.selectByShNum(shNum);
         if (target == null) throw new IllegalArgumentException("존재하지 않는 일정입니다.");
 
-        System.out.println("[일정 삭제 요청] shNum=" + shNum + ", type=" + target.getCodeBid());
+        log.info("[일정 삭제 요청] shNum={}, type={}", shNum, target.getCodeBid());
 
         // PT 일정인 경우만 추가 로직 수행
         if ("SCHEDULE-PT".equalsIgnoreCase(target.getCodeBid())) {
@@ -266,22 +268,22 @@ public class ScheduleServiceImpl implements ScheduleService {
                         .countChange(1L)
                         .build();
                     logDao.insertPtCancelLog(cancelLog);
-                    System.out.println("[PT 예약취소 로그 등록 완료] regNum=" + regNum);
+                    log.info("[PT 예약취소 로그 등록 완료] regNum={}", regNum);
                 } else {
-                    System.out.println("[회원 없는 일정 → PT 로그 생략]");
+                    log.info("[회원 없는 일정 → PT 로그 생략]");
                 }
 
                 // REGISTRATION 삭제
                 ptRegistrationService.deletePtRegistration(regNum);
-                System.out.println("[PT 등록 데이터 삭제 완료]");
+                log.info("[PT 등록 데이터 삭제 완료]");
             } else {
-                System.out.println("[PT 등록번호 없음 → 로그 등록 생략]");
+                log.info("[PT 등록번호 없음 → 로그 등록 생략]");
             }
         }
 
         // SCHEDULE 삭제
         int deleted = scheduleDao.delete(shNum);
-        System.out.println("[일정 삭제 완료] deleted=" + deleted);
+        log.info("[일정 삭제 완료] deleted={}", deleted);
         return deleted;
     }
 }

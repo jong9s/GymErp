@@ -1,0 +1,16 @@
+{
+  "scenario": "member",
+  "label": "index_only",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 32,
+  "rps": 0.71,
+  "failRate": 0.25,
+  "latencyMs": {
+    "avg": 24940.9,
+    "med": 24711.4,
+    "p95": 38411.5,
+    "p99": 38966.6,
+    "max": 39074
+  }
+}

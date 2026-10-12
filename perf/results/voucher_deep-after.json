@@ -1,0 +1,16 @@
+{
+  "scenario": "voucher_deep",
+  "label": "after",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 1065,
+  "rps": 34.93,
+  "failRate": 0,
+  "latencyMs": {
+    "avg": 567.3,
+    "med": 374.8,
+    "p95": 1159.6,
+    "p99": 1320.1,
+    "max": 2020.8
+  }
+}

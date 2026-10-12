@@ -3,6 +3,7 @@ package com.example.gymerp.service;
 import java.util.List;
 
 import com.example.gymerp.dto.MemberDto;
+import com.example.gymerp.dto.PageResponse;
 
 //주석
 public interface MemberService {
@@ -29,7 +30,7 @@ public interface MemberService {
 
 
     // 담당 트레이너 / 남은 PT 횟수 / 회원권 만료일
-    List<MemberDto> getAllWithStats(String status);
+    PageResponse<MemberDto> getPageWithStats(String status, int page, int size);
     MemberDto getWithStats(int memNum);
   
 	

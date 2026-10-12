@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,11 +21,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.gymerp.dto.ProductDto;
 import com.example.gymerp.dto.ProductListResponse;
+import com.example.gymerp.config.FileStorageProperties;
 import com.example.gymerp.dto.StockAdjustRequestDto;
 import com.example.gymerp.repository.ProductDao;
 
@@ -39,14 +38,11 @@ class ProductServiceTest {
     @Mock
     private StockService stockService;
 
+    @Mock
+    private FileStorageProperties fileStorageProperties;
+
     @InjectMocks
     private ProductServiceImpl productService;
-
-    @BeforeEach
-    void setUp() {
-        // file.location 값을 테스트용으로 설정
-        ReflectionTestUtils.setField(productService, "fileLocation", "C:/test-upload");
-    }
 
     @Test
     @DisplayName("DAO를 호출하여 ProductDto를 반환한다")

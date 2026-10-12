@@ -1,0 +1,6 @@
+# 이 파일을 application-local.properties 로 복사해서 값을 채우면 로컬에서 환경변수 없이 실행됩니다.
+# application-local.properties 는 .gitignore 에 등록되어 커밋되지 않습니다.
+DB_URL=jdbc:oracle:thin:@localhost:1521:xe
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+FILE_LOCATION=profile

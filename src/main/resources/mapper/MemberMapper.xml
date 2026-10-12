@@ -24,101 +24,88 @@
 		<result property="ptRemain"         column="ptRemain"/>
 		<result property="membershipStatus" column="membershipStatus"/>
 	</resultMap>
-	  <!-- 전체 + 통계 (상태 필터/정렬) -->
-  <select id="selectAllWithStats" parameterType="map" resultMap="MemberWithStatsMap">
-    WITH latest_voucher AS (
-      SELECT memNum, voucherId, startDate, endDate
-      FROM (
-        SELECT v.*,
-               ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
-        FROM voucher_log v
-      ) WHERE rn = 1
-    ),
-    last_trainer AS (
-      SELECT memNum,
-             MAX(empNum) KEEP (DENSE_RANK LAST ORDER BY createdAt, usageId) AS empNum
-      FROM pt_log
-      GROUP BY memNum
-    ),
-    pt_balance AS (
-      SELECT memNum, NVL(SUM(countChange),0) AS ptRemain
-      FROM pt_log
-      GROUP BY memNum
-    )
+  <!--
+    회원 목록 + 통계 (상태 필터 / 페이징)
+    1) 정렬·페이징은 member(memCreated, memNum) 인덱스만 읽어 회원번호 20개를 먼저 확정 (지연 조인)
+       - 상태 필터는 회원권 인덱스에 대한 EXISTS 로 판단 (회원별 최신 회원권 전체 집계 X)
+    2) 확정된 20명에 대해서만 회원 정보 + 회원권/PT 통계를 PK·커버링 인덱스로 조회
+    (기존: 요청마다 voucher_log 30만 건, pt_log 100만 건 전체를 GROUP BY 후 10만 건 정렬, 페이징 없음)
+  -->
+  <sql id="usingVoucher">
+    EXISTS (SELECT 1 FROM voucher_log v WHERE v.memNum = m.memNum AND v.endDate &gt;= TRUNC(SYSDATE))
+  </sql>
+
+  <select id="selectPageWithStats" parameterType="map" resultMap="MemberWithStatsMap">
     SELECT
       m.memNum, m.memName, m.memGender, m.memBirthday, m.memPhone, m.memEmail,
       m.memAddr, m.memCreated, m.memUpdated, m.memProfile, m.memNote,
-      e.empName AS trainerName,
-      lv.startDate AS voucherStartDate,
-      lv.endDate   AS voucherEndDate,
-      pb.ptRemain  AS ptRemain,
-      CASE
-        WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN '미사용중'
-        ELSE '사용중'
-      END AS membershipStatus,
-      CASE
-        WHEN lv.endDate IS NULL THEN 1
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN 1
-        ELSE 0
-      END AS statusSort  -- 1=미사용중 먼저. 사용중 먼저로 바꾸려면 0/1을 뒤집거나 ORDER BY를 ASC로 변경
-    FROM MEMBER m
-    LEFT JOIN last_trainer lt ON lt.memNum = m.memNum
-    LEFT JOIN employee    e  ON e.empNum  = lt.empNum
-    LEFT JOIN latest_voucher lv ON lv.memNum = m.memNum
-    LEFT JOIN pt_balance pb   ON pb.memNum = m.memNum
-    WHERE
-      ( #{status,jdbcType=VARCHAR} IS NULL
-        OR UPPER(#{status}) = 'ALL'
-        OR (UPPER(#{status}) = 'USING'
-              AND lv.endDate IS NOT NULL
-              AND lv.endDate >= TRUNC(SYSDATE)
-           )
-        OR (UPPER(#{status}) = 'NOT_USING'
-              AND (lv.endDate IS NULL OR lv.endDate &lt; TRUNC(SYSDATE))
-           )
+      (SELECT MAX(v.startDate) KEEP (DENSE_RANK LAST ORDER BY v.endDate, v.voucherId)
+         FROM voucher_log v WHERE v.memNum = m.memNum) AS voucherStartDate,
+      (SELECT MAX(v.endDate) FROM voucher_log v WHERE v.memNum = m.memNum) AS voucherEndDate,
+      CASE WHEN <include refid="usingVoucher"/> THEN '사용중' ELSE '미사용중' END AS membershipStatus,
+      (SELECT SUM(pl.countChange) FROM pt_log pl WHERE pl.memNum = m.memNum) AS ptRemain,
+      (SELECT e.empName FROM employee e
+        WHERE e.empNum = (SELECT MAX(pl.empNum) KEEP (DENSE_RANK LAST ORDER BY pl.createdAt, pl.usageId)
+                            FROM pt_log pl WHERE pl.memNum = m.memNum)) AS trainerName
+    FROM (
+      SELECT memNum, rn
+      FROM (
+        SELECT k.memNum, ROWNUM AS rn
+        FROM (
+          SELECT /*+ INDEX_DESC(m ix_member_created) */ m.memNum
+          FROM MEMBER m
+          <where>
+            <if test="status == 'USING'"><include refid="usingVoucher"/></if>
+            <if test="status == 'NOT_USING'">NOT <include refid="usingVoucher"/></if>
+          </where>
+          ORDER BY m.memCreated DESC, m.memNum DESC
+        ) k
+        WHERE ROWNUM &lt;= #{endRow}
       )
-    ORDER BY statusSort DESC, m.memCreated DESC
+      WHERE rn &gt; #{startRow}
+    ) pg
+    JOIN MEMBER m ON m.memNum = pg.memNum
+    ORDER BY pg.rn
   </select>
 
-  <!-- 단건 상세 + 통계 -->
+  <!-- 건수: 사용중 = 유효 회원권 보유 회원 수 (voucher_log(endDate, memNum) 인덱스 범위 스캔) -->
+  <select id="countWithStats" parameterType="map" resultType="int">
+    <choose>
+      <when test="status == 'USING'">
+        SELECT COUNT(DISTINCT memNum) FROM voucher_log WHERE endDate &gt;= TRUNC(SYSDATE)
+      </when>
+      <when test="status == 'NOT_USING'">
+        SELECT (SELECT COUNT(*) FROM MEMBER)
+             - (SELECT COUNT(DISTINCT memNum) FROM voucher_log WHERE endDate &gt;= TRUNC(SYSDATE))
+        FROM dual
+      </when>
+      <otherwise>
+        SELECT COUNT(*) FROM MEMBER
+      </otherwise>
+    </choose>
+  </select>
+
+  <!-- 단건 상세 + 통계 : 모든 집계를 해당 회원(memNum)으로 한정해 인덱스 범위 스캔 -->
   <select id="getWithStats" parameterType="int" resultMap="MemberWithStatsMap">
-    WITH latest_voucher AS (
-      SELECT memNum, voucherId, startDate, endDate
-      FROM (
-        SELECT v.*,
-               ROW_NUMBER() OVER (PARTITION BY v.memNum ORDER BY v.endDate DESC, v.voucherId DESC) rn
-        FROM voucher_log v
-      ) WHERE rn = 1
-    ),
-    last_trainer AS (
-      SELECT memNum,
-             MAX(empNum) KEEP (DENSE_RANK LAST ORDER BY createdAt, usageId) AS empNum
-      FROM pt_log
-      GROUP BY memNum
-    ),
-    pt_balance AS (
-      SELECT memNum, NVL(SUM(countChange),0) AS ptRemain
-      FROM pt_log
-      GROUP BY memNum
-    )
     SELECT
       m.memNum, m.memName, m.memGender, m.memBirthday, m.memPhone, m.memEmail,
       m.memAddr, m.memCreated, m.memUpdated, m.memProfile, m.memNote,
-      e.empName AS trainerName,
       lv.startDate AS voucherStartDate,
       lv.endDate   AS voucherEndDate,
-      pb.ptRemain  AS ptRemain,
-      CASE
-        WHEN lv.endDate IS NULL THEN '미사용중'
-        WHEN lv.endDate &lt; TRUNC(SYSDATE) THEN '미사용중'
-        ELSE '사용중'
-      END AS membershipStatus
+      CASE WHEN lv.endDate &gt;= TRUNC(SYSDATE) THEN '사용중' ELSE '미사용중' END AS membershipStatus,
+      (SELECT SUM(pl.countChange) FROM pt_log pl WHERE pl.memNum = m.memNum) AS ptRemain,
+      (SELECT e.empName FROM employee e
+        WHERE e.empNum = (SELECT MAX(pl.empNum) KEEP (DENSE_RANK LAST ORDER BY pl.createdAt, pl.usageId)
+                            FROM pt_log pl WHERE pl.memNum = m.memNum)) AS trainerName
     FROM MEMBER m
-    LEFT JOIN last_trainer lt ON lt.memNum = m.memNum
-    LEFT JOIN employee    e  ON e.empNum  = lt.empNum
-    LEFT JOIN latest_voucher lv ON lv.memNum = m.memNum
-    LEFT JOIN pt_balance pb   ON pb.memNum = m.memNum
+    LEFT JOIN (
+      SELECT memNum,
+             MAX(endDate) AS endDate,
+             MAX(startDate) KEEP (DENSE_RANK LAST ORDER BY endDate, voucherId) AS startDate
+      FROM voucher_log
+      WHERE memNum = #{memNum}
+      GROUP BY memNum
+    ) lv ON lv.memNum = m.memNum
     WHERE m.memNum = #{memNum}
   </select>
 	

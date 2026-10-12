@@ -1,0 +1,16 @@
+{
+  "scenario": "ptlog_first",
+  "label": "before",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 32,
+  "rps": 0.93,
+  "failRate": 0,
+  "latencyMs": {
+    "avg": 20296.9,
+    "med": 23993.7,
+    "p95": 31819.2,
+    "p99": 31833.4,
+    "max": 31837.3
+  }
+}

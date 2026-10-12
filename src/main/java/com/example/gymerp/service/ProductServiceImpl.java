@@ -3,6 +3,8 @@ package com.example.gymerp.service;
 import java.util.List;
 import java.util.UUID;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -140,8 +142,8 @@ public class ProductServiceImpl implements ProductService{
 			Path targetPath = fileStorageProperties.prepareUploadDir().resolve(saveFileName);
 			try {
 				image.transferTo(targetPath.toFile());
-			}catch(Exception e) {
-				e.printStackTrace();
+			}catch(IOException e) {
+				throw new UncheckedIOException("상품 이미지 저장 실패: " + saveFileName, e);
 			}
 			//UserDto 에 저장된 이미지의 이름을 넣어준다
 			dto.setProfileImage(saveFileName);
@@ -177,8 +179,8 @@ public class ProductServiceImpl implements ProductService{
 			Path targetPath = fileStorageProperties.prepareUploadDir().resolve(saveFileName);
 			try {
 				image.transferTo(targetPath.toFile());
-			}catch(Exception e) {
-				e.printStackTrace();
+			}catch(IOException e) {
+				throw new UncheckedIOException("상품 이미지 저장 실패: " + saveFileName, e);
 			}
 			//UserDto 에 저장된 이미지의 이름을 넣어준다
 			dto.setProfileImage(saveFileName);

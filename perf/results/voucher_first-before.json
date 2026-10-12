@@ -1,0 +1,16 @@
+{
+  "scenario": "voucher_first",
+  "label": "before",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 210,
+  "rps": 6.61,
+  "failRate": 0,
+  "latencyMs": {
+    "avg": 2948.3,
+    "med": 2819.9,
+    "p95": 4543.6,
+    "p99": 4992.4,
+    "max": 5158.4
+  }
+}

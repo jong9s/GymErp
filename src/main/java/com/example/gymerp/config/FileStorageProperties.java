@@ -24,13 +24,7 @@ public class FileStorageProperties {
 	}
 
 	private Path resolvePath(String configuredPath) {
-		String targetPath = configuredPath;
-		if (!StringUtils.hasText(targetPath)) {
-			String os = System.getProperty("os.name").toLowerCase();
-			targetPath = os.contains("win")
-					? "C:/playground/final_project/GymErp/profile/"
-					: "profile";
-		}
+		String targetPath = StringUtils.hasText(configuredPath) ? configuredPath : "profile";
 		return Paths.get(targetPath).toAbsolutePath().normalize();
 	}
 

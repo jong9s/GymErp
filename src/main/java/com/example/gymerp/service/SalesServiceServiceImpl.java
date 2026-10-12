@@ -19,7 +19,9 @@ import com.example.gymerp.repository.MemberDao;
 import com.example.gymerp.repository.SalesServiceDao;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SalesServiceServiceImpl implements SalesServiceService {
@@ -84,7 +86,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                     .build();
 
                 logService.insertVoucherLog(newVoucher);
-                System.out.println("[VOUCHER] 신규 회원권 등록 완료 (" + startDate + " ~ " + endDate + ")");
+                log.info("[VOUCHER] 신규 회원권 등록 완료 ({} ~ {})", startDate, endDate);
             }
 
             // Case 2. 기존 회원권 있음 + 만료됨(endDate < now) → 재시작
@@ -100,7 +102,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 existingVoucher.setEndDate(endDate.format(oracleFmt));
 
                 logService.extendVoucherLog(existingVoucher);
-                System.out.println("[VOUCHER] 만료 회원권 재시작 (" + startDate + " ~ " + endDate + ")");
+                log.info("[VOUCHER] 만료 회원권 재시작 ({} ~ {})", startDate, endDate);
             }
 
             // Case 3. 기존 회원권 있음 + 유효함(endDate ≥ now) → 기존 endDate 기준 연장
@@ -114,7 +116,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 existingVoucher.setEndDate(newEndDate.format(oracleFmt));
 
                 logService.extendVoucherLog(existingVoucher);
-                System.out.println("[VOUCHER] 유효 회원권 연장 (" + existingVoucher.getStartDate() + " ~ " + newEndDate + ")");
+                log.info("[VOUCHER] 유효 회원권 연장 ({} ~ {})", existingVoucher.getStartDate(), newEndDate);
             }
         }
 
@@ -158,17 +160,12 @@ public class SalesServiceServiceImpl implements SalesServiceService {
         if (!existing.getServiceType().equalsIgnoreCase(salesService.getServiceType()))
             throw new IllegalStateException("상품 타입(PT/회원권)은 수정할 수 없습니다.");
 
-        System.out.println("=== [DEBUG] updateSalesService() 진입 ===");
-        System.out.println("기존 서비스 타입: " + existing.getServiceType());
-        System.out.println("기존 판매ID(serviceSalesId): " + existing.getServiceSalesId());
+        log.debug("updateSalesService - id={}, type={}", existing.getServiceSalesId(), existing.getServiceType());
 
         // A. PT 상품 (횟수 변경)
         if ("PT".equalsIgnoreCase(existing.getServiceType())) {
             int oldCount = existing.getActualCount();
             int newCount = salesService.getActualCount();
-
-            // 동일하면 변경 없음
-            //if (oldCount == newCount) return 1;
 
             // 1. 연장 (횟수 증가)
             if (newCount > oldCount) {
@@ -181,7 +178,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
 
                 baseLog.setCountChange((long) newCount);
                 logDao.updatePtChargeCount(baseLog);
-                System.out.println("[PT] 충전 연장 완료 → +" + addCount + "회");
+                log.info("[PT] 충전 연장 완료 → +{}회", addCount);
             }
 
             // 2. 부분환불 (횟수 감소)
@@ -216,7 +213,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                         .build();
 
                 logDao.insertPtPartialRefundLog(refundLog);
-                System.out.println("[PT] 부분환불 완료 → -" + refundCount + "회");
+                log.info("[PT] 부분환불 완료 → -{}회", refundCount);
             }
         }
 
@@ -228,7 +225,6 @@ public class SalesServiceServiceImpl implements SalesServiceService {
             int oldDays = existing.getActualCount();
             int newDays = salesService.getActualCount();
 
-            //if (oldDays == newDays) return 1;
 
             LocalDate now = LocalDate.now();
             LocalDate endDate = LocalDateTime.parse(
@@ -245,7 +241,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 LocalDate newEndDate = endDate.plusDays(addDays);
                 voucher.setEndDate(newEndDate.toString());
                 logDao.extendVoucherLog(voucher);
-                System.out.println("[VOUCHER] 연장 완료 → +" + addDays + "일");
+                log.info("[VOUCHER] 연장 완료 → +{}일", addDays);
             }
 
             // 2. 부분환불 (일수 감소)
@@ -274,7 +270,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                 DateTimeFormatter oracleFmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                 voucher.setEndDate(newEndDate.atStartOfDay().format(oracleFmt));
                 logDao.partialRefundVoucherLog(voucher);
-                System.out.println("[VOUCHER] 부분환불 완료 → -" + refundDays + "일");
+                log.info("[VOUCHER] 부분환불 완료 → -{}일", refundDays);
             }
         }
         
@@ -285,20 +281,6 @@ public class SalesServiceServiceImpl implements SalesServiceService {
         existing.setDiscount(salesService.getDiscount());
         existing.setBaseAmount(salesService.getBaseAmount());
         existing.setActualAmount(salesService.getActualAmount());
-        
-        System.out.println("=== [DEBUG] updateSalesService() 전달 값 확인 ===");
-        System.out.println("serviceSalesId : " + existing.getServiceSalesId());
-        System.out.println("serviceName    : " + existing.getServiceName());
-        System.out.println("serviceType    : " + existing.getServiceType());
-        System.out.println("empNum         : " + existing.getEmpNum());
-        System.out.println("baseCount      : " + existing.getBaseCount());
-        System.out.println("actualCount    : " + existing.getActualCount());
-        System.out.println("baseAmount     : " + existing.getBaseAmount());
-        System.out.println("discount       : " + existing.getDiscount());
-        System.out.println("actualAmount   : " + existing.getActualAmount());
-        System.out.println("memNum         : " + existing.getMemNum());
-        System.out.println("updatedAt      : " + LocalDateTime.now());
-        System.out.println("===========================================");
 
 
         salesServiceDao.updateSalesService(existing);
@@ -339,7 +321,7 @@ public class SalesServiceServiceImpl implements SalesServiceService {
                     .build();
 
             logDao.insertPtFullRefundLog(refundLog);
-            System.out.println("[PT] 전체환불 완료 → -" + sale.getActualCount() + "회");
+            log.info("[PT] 전체환불 완료 → -{}회", sale.getActualCount());
         }
 
         // B. 회원권 삭제 (전체 환불)
@@ -376,11 +358,11 @@ public class SalesServiceServiceImpl implements SalesServiceService {
             current.setEndDate(newEndDate.atStartOfDay().format(oracleFmt));
             logDao.fullRefundVoucherLog(current);
 
-            System.out.println("[VOUCHER] 전체환불 완료 → -" + actualCount + "일");
+            log.info("[VOUCHER] 전체환불 완료 → -{}일", actualCount);
         }
 
         salesServiceDao.deleteSalesService(serviceSalesId);
-        System.out.println("[SALES] 판매내역 논리삭제 완료 (status='DELETED')");
+        log.info("[SALES] 판매내역 논리삭제 완료 (status='DELETED')");
         return 1;
     }
 
