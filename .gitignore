@@ -122,3 +122,7 @@ Temporary Items
 .env.*
 *.log
 .codex/
+
+# --- Local secrets / uploads ---
+application-local.properties
+/profile/
