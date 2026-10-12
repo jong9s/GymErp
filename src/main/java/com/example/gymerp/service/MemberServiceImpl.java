@@ -1,8 +1,6 @@
 package com.example.gymerp.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Service
 public class MemberServiceImpl implements MemberService {
-	// 주석
 	private final MemberDao memberDao;
 	
 	// 회원 추가
@@ -66,16 +63,16 @@ public class MemberServiceImpl implements MemberService {
         return memberDao.search(keyword);
     }
 
-    
-    
-	@Override
-	public List<MemberDto> getAllWithStats(String status) {
+    @Override
+    @Transactional(readOnly = true)
+    public List<MemberDto> getAllWithStats(String status) {
         return memberDao.selectAllWithStats(status);
-	}
+    }
 
-	@Override
-	public MemberDto getWithStats(int memNum) {
+    @Override
+    @Transactional(readOnly = true)
+    public MemberDto getWithStats(int memNum) {
         return memberDao.getWithStats(memNum);
-	}
+    }
 
 }
