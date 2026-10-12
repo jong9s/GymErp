@@ -10,7 +10,9 @@ import com.example.gymerp.dto.SalesService;
 import com.example.gymerp.service.SalesServiceService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1")
 @RequiredArgsConstructor
@@ -47,7 +49,7 @@ public class SalesServiceController {
             response.put("success", false);
             response.put("message", e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("판매 내역 처리 중 오류", e);
             response.put("success", false);
             response.put("message", "서버 오류가 발생했습니다.");
         }
@@ -72,7 +74,7 @@ public class SalesServiceController {
             response.put("success", false);
             response.put("message", e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("판매 내역 처리 중 오류", e);
             response.put("success", false);
             response.put("message", "서버 오류가 발생했습니다.");
         }
@@ -94,7 +96,7 @@ public class SalesServiceController {
             response.put("success", false);
             response.put("message", e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("판매 내역 처리 중 오류", e);
             response.put("success", false);
             response.put("message", "서버 오류가 발생했습니다.");
         }

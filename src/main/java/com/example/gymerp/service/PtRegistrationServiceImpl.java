@@ -16,7 +16,9 @@ import com.example.gymerp.dto.ScheduleDto;
 import com.example.gymerp.repository.LogDao;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PtRegistrationServiceImpl implements PtRegistrationService {
@@ -45,7 +47,7 @@ public class PtRegistrationServiceImpl implements PtRegistrationService {
     @Transactional
     public int insertPtRegistration(PtRegistrationDto dto) {
     	int rows = session.insert("PtRegistrationMapper.insertPtRegistration", dto);
-        System.out.println("[PT 예약 등록 완료] regNum=" + dto.getRegNum());
+        log.info("[PT 예약 등록 완료] regNum={}", dto.getRegNum());
         return rows;
     }
 
@@ -68,11 +70,11 @@ public class PtRegistrationServiceImpl implements PtRegistrationService {
             throw new IllegalArgumentException("존재하지 않는 PT 등록입니다.");
         }
 
-        System.out.println("[PT 예약 삭제 시작] regNum=" + regNum);
+        log.info("[PT 예약 삭제 시작] regNum={}", regNum);
 
         // 2️⃣ PT 등록 데이터 삭제
         int deleted = session.delete("PtRegistrationMapper.deletePtRegistration", regNum);
-        System.out.println("[PT 예약 삭제 완료] deleted=" + deleted);
+        log.info("[PT 예약 삭제 완료] deleted={}", deleted);
 
         return deleted;
     }
@@ -80,7 +82,7 @@ public class PtRegistrationServiceImpl implements PtRegistrationService {
     //일정번호(shNum)로 PT 등록번호(regNum) 조회 
     @Override
     public Integer findRegNumByShNum(int shNum) {
-        System.out.println("[findRegNumByShNum 호출] shNum=" + shNum);
+        log.debug("[findRegNumByShNum 호출] shNum={}", shNum);
     return sessionT.selectOne("PtRegistrationMapper.findRegNumByShNum", shNum);
     }
 

@@ -33,7 +33,6 @@ import com.example.gymerp.dto.EmpDto;
 import com.example.gymerp.dto.MemberDto;
 import com.example.gymerp.security.CustomUserDetails;
 import com.example.gymerp.service.EmpService;
-import com.example.gymerp.service.SalesItemServiceImpl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,7 +48,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/v1/emp") 
 public class EmpController {
 
-    private final SalesItemServiceImpl salesItemServiceImpl;
     
     private final EmpService empService;
     public final AuthenticationManager authManager;
@@ -207,8 +205,6 @@ public class EmpController {
         // ★ 세션 무효화 + 시큐리티 컨텍스트 클리어 + (remember-me 있으면 쿠키도 제거)
         new org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler()
                 .logout(request, response, authentication);
-        // new org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler("remember-me")
-        //        .logout(request, response, authentication);
 
         return ResponseEntity.ok(Map.of(
                 "message", "비밀번호가 변경되어 재로그인이 필요합니다.",
@@ -246,32 +242,6 @@ public class EmpController {
     }
 
     
-//    // 프로필이미지 업로드
-//    @PostMapping("/upload/{empNum}")
-//    public ResponseEntity<String> uploadProfile(
-//            @PathVariable int empNum,
-//            @RequestParam("file") MultipartFile file) {
-//
-//        try {
-//            Path uploadDir = fileStorageProperties.prepareUploadDir();
-//            String original = file.getOriginalFilename();
-//            String safeOriginal = StringUtils.hasText(original) ? original : "profile";
-//            String fileName = empNum + "_" + System.currentTimeMillis() + "_" + safeOriginal;
-//
-//            Path target = uploadDir.resolve(fileName);
-//            file.transferTo(target.toFile());
-//
-//            // DB에 파일명 저장
-//            empService.updateProfileImage(empNum, fileName);
-//
-//            // 프론트로 반환 (React에서 미리보기용)
-//            return ResponseEntity.ok(fileName);
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(500).body("업로드 실패: " + e.getMessage());
-//        }
-//    }
 
     
     // 특정 직원의 회원조회 API

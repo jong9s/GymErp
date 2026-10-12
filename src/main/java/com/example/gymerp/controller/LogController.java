@@ -80,11 +80,6 @@ public class LogController {
 
         List<Map<String, Object>> list = logService.getPagedVoucherLogs(params);
         int totalCount = logService.getVoucherTotalCount(params);
-        
-        //  디버깅 로그 추가
-        System.out.println("📘 [Voucher] 요청 파라미터: " + params);
-        System.out.println("📘 [Voucher] 조회 결과 (" + list.size() + "건):");
-        list.forEach(row -> System.out.println("   ▶ " + row));
 
 
         Map<String, Object> result = new HashMap<>();
@@ -158,11 +153,6 @@ public class LogController {
 
         List<Map<String, Object>> list = logService.getPagedPtLogs(params);
         int totalCount = logService.getPtTotalCount(params);
-        
-        //  디버깅 로그 추가
-        System.out.println("📗 [PT] 요청 파라미터: " + params);
-        System.out.println("📗 [PT] 조회 결과 (" + list.size() + "건):");
-        list.forEach(row -> System.out.println("   ▶ " + row));
 
         Map<String, Object> result = new HashMap<>();
         result.put("list", list);

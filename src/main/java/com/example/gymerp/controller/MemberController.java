@@ -37,19 +37,6 @@ public class MemberController {
     private final MemberService memberService;
     private final FileStorageProperties fileStorageProperties;
 
-//    // ✅ (1) 회원 전체 조회
-//    // 프론트 요청: GET /v1/member
-//    @GetMapping("/member")
-//    public List<MemberDto> list() {
-//        return memberService.getAllMembers();
-//    }
-//
-//    // ✅ (2) 회원 상세 조회
-//    // 프론트 요청: GET /v1/member/{memNum}
-//    @GetMapping("/member/{memNum}")
-//    public MemberDto detail(@PathVariable int memNum) {
-//        return memberService.getMember(memNum);
-//    }
     
     @GetMapping("/member")
     public List<MemberDto> list(@RequestParam(required=false, defaultValue="ALL") String status) {

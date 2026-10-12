@@ -39,22 +39,6 @@ public interface PtRegistrationService {
     // [PT LOG 관련 추가 기능]
     // ===============================
 
-    /**
-     * PT 예약 시 처리:
-     *  - REGISTRATION 테이블에 예약 정보 저장
-     *  - PT_LOG 테이블에 소비 로그(-1) 기록
-     */
-    //void registerPtWithLog(PtRegistrationDto dto);
-
-    /**
-     * PT 예약 취소 시 처리:
-     *  - 기존 소비 로그 조회
-     *  - PT_LOG 테이블에 예약취소 로그(+1) 기록
-     *  - REGISTRATION 테이블에서 예약 삭제
-     */
-    //void cancelPtWithLog(long regNum);
-    
-    
     // 회원 수정 시 회원번호 교체 
     /**
      * 기존 PT 예약의 회원 번호를 새 회원 번호로 변경합니다.

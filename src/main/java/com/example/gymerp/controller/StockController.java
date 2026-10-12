@@ -39,18 +39,6 @@ public class StockController {
 		return stockService.getStockOne(productId);
 	}
 	
-	// 2-3. 상품 재고 조회. 상품테이블에서 구분 코드와 상품명 가져오기, 입출고 테이블에서 입고수량-출고수량 표시
-//	@GetMapping("/stock")
-//	public List<CurrentStockDto> getProductStockList(
-//	    @RequestParam(defaultValue = "1") 
-//	    int page,
-//	    @RequestParam(defaultValue = "20") 
-//	    int size,
-//	    @RequestParam(required = false) String 
-//	    keyword
-//	) {
-//	    return stockService.getProductStockList(page, size, keyword);
-//	}
 	
 	// 상품 입고 내역 조회
 	@GetMapping("/stock/{productId}/inbound")
