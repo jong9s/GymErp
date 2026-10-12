@@ -1,0 +1,16 @@
+{
+  "scenario": "dashboard",
+  "label": "after",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 902988,
+  "rps": 28796.76,
+  "failRate": 0,
+  "latencyMs": {
+    "avg": 0.5,
+    "med": 0,
+    "p95": 2,
+    "p99": 3.5,
+    "max": 1346.4
+  }
+}

@@ -1,11 +1,13 @@
 package com.example.gymerp.service;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.gymerp.dto.MemberDto;
+import com.example.gymerp.dto.PageResponse;
 import com.example.gymerp.repository.MemberDao;
 
 import lombok.RequiredArgsConstructor;
@@ -65,8 +67,12 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MemberDto> getAllWithStats(String status) {
-        return memberDao.selectAllWithStats(status);
+    public PageResponse<MemberDto> getPageWithStats(String status, int page, int size) {
+        String normalized = status == null ? "ALL" : status.toUpperCase(Locale.ROOT);
+        int startRow = (page - 1) * size;
+        List<MemberDto> list = memberDao.selectPageWithStats(normalized, startRow, startRow + size);
+        int totalCount = memberDao.countWithStats(normalized);
+        return PageResponse.of(list, page, size, totalCount);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.gymerp.service;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.example.gymerp.dto.PtLogDto;
@@ -68,6 +69,9 @@ public class LogServiceImpl implements LogService {
 
     // 회원권 로그 전체 카운트
     @Override
+    // 목록 전체 건수(COUNT)는 페이지를 넘길 때마다 같은 값을 다시 세므로 필터 조합별로 60초 캐시
+    @Cacheable(cacheNames = "logCount",
+               key = "'voucher|' + #params['startDate'] + '|' + #params['endDate'] + '|' + #params['memNum'] + '|' + #params['validityFilter']")
     public int getVoucherTotalCount(Map<String, Object> params) {
         return logDao.selectVoucherTotalCount(params);
     }
@@ -139,6 +143,8 @@ public class LogServiceImpl implements LogService {
 
     // PT 로그 전체 카운트
     @Override
+    @Cacheable(cacheNames = "logCount",
+               key = "'pt|' + #params['startDate'] + '|' + #params['endDate'] + '|' + #params['memNum'] + '|' + #params['empNum']")
     public int getPtTotalCount(Map<String, Object> params) {
         return logDao.selectPtTotalCount(params);
     }

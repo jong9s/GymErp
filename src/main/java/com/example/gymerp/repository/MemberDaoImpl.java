@@ -83,10 +83,17 @@ public class MemberDaoImpl implements MemberDao {
     }
 
     @Override
-    public List<MemberDto> selectAllWithStats(String status) {
+    public List<MemberDto> selectPageWithStats(String status, int startRow, int endRow) {
         Map<String, Object> p = new HashMap<>();
-        p.put("status", status == null ? "ALL" : status.toUpperCase());
-        return session.selectList("MemberMapper.selectAllWithStats", p);
+        p.put("status", status);
+        p.put("startRow", startRow);
+        p.put("endRow", endRow);
+        return session.selectList("MemberMapper.selectPageWithStats", p);
+    }
+
+    @Override
+    public int countWithStats(String status) {
+        return session.selectOne("MemberMapper.countWithStats", Map.of("status", status));
     }
 
     @Override

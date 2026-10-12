@@ -1,0 +1,16 @@
+{
+  "scenario": "ptlog_deep",
+  "label": "after",
+  "vus": 20,
+  "duration": "30s",
+  "requests": 268,
+  "rps": 8.42,
+  "failRate": 0,
+  "latencyMs": {
+    "avg": 2344.9,
+    "med": 2261.1,
+    "p95": 3309.8,
+    "p99": 3966.4,
+    "max": 4559.7
+  }
+}

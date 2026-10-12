@@ -1,0 +1,35 @@
+Plan hash value: 2869892429
+-------------------------------------------------------------------------------
+| Id  | Operation			   | Name	 | Rows  | Cost (%CPU)|
+-------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		   |		 |    20 |    68   (3)|
+|   1 |  SORT ORDER BY			   |		 |    20 |    68   (3)|
+|   2 |   NESTED LOOPS OUTER		   |		 |    20 |    67   (2)|
+|   3 |    HASH JOIN OUTER		   |		 |    20 |    47   (3)|
+|   4 |     NESTED LOOPS		   |		 |	 |	      |
+|   5 |      NESTED LOOPS		   |		 |    20 |    43   (0)|
+|   6 |       VIEW			   |		 |    20 |     3   (0)|
+|   7 |        COUNT STOPKEY		   |		 |	 |	      |
+|   8 | 	VIEW			   |		 |    20 |     3   (0)|
+|   9 | 	 INDEX FULL SCAN DESCENDING| SYS_C007714 |  1000K|     3   (0)|
+|  10 |       INDEX UNIQUE SCAN 	   | SYS_C007714 |     1 |     1   (0)|
+|  11 |      TABLE ACCESS BY INDEX ROWID   | PT_LOG	 |     1 |     2   (0)|
+|  12 |     TABLE ACCESS FULL		   | EMPLOYEE	 |    50 |     3   (0)|
+|  13 |    TABLE ACCESS BY INDEX ROWID	   | MEMBER	 |     1 |     1   (0)|
+|  14 |     INDEX UNIQUE SCAN		   | SYS_C007702 |     1 |     0   (0)|
+-------------------------------------------------------------------------------
+Plan hash value: 2922233587
+-----------------------------------------------------------------------------------
+| Id  | Operation			| Name		     | Rows  | Cost (%CPU)|
+-----------------------------------------------------------------------------------
+|   0 | SELECT STATEMENT		|		     |	  20 |	   3  (34)|
+|   1 |  SORT AGGREGATE 		|		     |	   1 |		  |
+|   2 |   INDEX RANGE SCAN		| IX_PTLOG_MEM_COVER |	  14 |	   3   (0)|
+|   3 |  SORT ORDER BY			|		     |	  20 |	   3  (34)|
+|   4 |   NESTED LOOPS			|		     |	  20 |	   2   (0)|
+|   5 |    VIEW 			|		     |	  20 |	   2   (0)|
+|   6 |     COUNT STOPKEY		|		     |	     |		  |
+|   7 |      VIEW			|		     |	  20 |	   2   (0)|
+|   8 |       INDEX FULL SCAN DESCENDING| IX_MEMBER_CREATED  |	  20 |	   2   (0)|
+|   9 |    INDEX UNIQUE SCAN		| SYS_C007702	     |	   1 |	   0   (0)|
+-----------------------------------------------------------------------------------

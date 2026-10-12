@@ -34,7 +34,8 @@ public interface MemberDao {
     // 담당 트레이너 / 남은 PT 횟수 / 회원권 만료일
 	
     // 상태: ALL | USING | NOT_USING (null 이면 ALL)
-    List<MemberDto> selectAllWithStats(String status);
+    List<MemberDto> selectPageWithStats(String status, int startRow, int endRow);
+    int countWithStats(String status);
     // 단건 상세 + 통계
     MemberDto getWithStats(int memNum);
 

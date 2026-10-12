@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -15,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -34,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.gymerp.dto.MemberDto;
+import com.example.gymerp.dto.PageResponse;
 import com.example.gymerp.service.FileStorageService;
 import com.example.gymerp.service.MemberService;
 import com.example.gymerp.support.ControllerSliceTestBase;
@@ -72,6 +75,30 @@ class MemberControllerTest extends ControllerSliceTestBase {
             "memPhone", "010-1234-5678",
             "memEmail", "hong@test.com"
         );
+    }
+
+    @Test
+    @DisplayName("GET /v1/member - 기본값 page=1,size=20 으로 페이지 조회하고 페이지 정보를 함께 반환한다")
+    void list_paged() throws Exception {
+        MemberDto m = new MemberDto();
+        m.setMemNum(1);
+        m.setMemName("홍길동");
+        when(memberService.getPageWithStats("ALL", 1, 20)).thenReturn(PageResponse.of(List.of(m), 1, 20, 41));
+
+        mockMvc.perform(get("/v1/member"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.list[0].memName").value("홍길동"))
+            .andExpect(jsonPath("$.totalCount").value(41))
+            .andExpect(jsonPath("$.totalPage").value(3));
+    }
+
+    @Test
+    @DisplayName("GET /v1/member - size 가 100 을 넘으면 400 (한 번에 전체 조회 방지)")
+    void list_sizeTooLarge() throws Exception {
+        mockMvc.perform(get("/v1/member").param("size", "100000"))
+            .andExpect(status().isBadRequest());
+
+        verify(memberService, never()).getPageWithStats(any(), anyInt(), anyInt());
     }
 
     @Test

@@ -17,10 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.gymerp.dto.MemberDto;
+import com.example.gymerp.dto.PageResponse;
 import com.example.gymerp.service.FileStorageService;
 import com.example.gymerp.service.MemberService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,11 +40,14 @@ public class MemberController {
     private final MemberService memberService;
     private final FileStorageService fileStorageService;
 
-    // ✅ (1) 회원 목록 조회 (담당트레이너/남은PT/회원권/상태 포함)
-    // 프론트 요청: GET /v1/member?status=ALL
+    // ✅ (1) 회원 목록 조회 (담당트레이너/남은PT/회원권/상태 포함, 페이징)
+    // 프론트 요청: GET /v1/member?status=ALL|USING|NOT_USING&page=1&size=20
     @GetMapping("/member")
-    public List<MemberDto> list(@RequestParam(required=false, defaultValue="ALL") String status) {
-        return memberService.getAllWithStats(status);
+    public PageResponse<MemberDto> list(
+            @RequestParam(defaultValue = "ALL") String status,
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+        return memberService.getPageWithStats(status, page, size);
     }
 
     // ✅ (2) 회원 상세 조회
