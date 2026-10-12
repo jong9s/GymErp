@@ -78,7 +78,7 @@ CREATE TABLE MEMBER (
     MEMPROFILE VARCHAR(500),
     MEMNOTE VARCHAR(500)
 );
-CREATE SEQUENCE MEMBER_SEQ;
+CREATE SEQUENCE MEMBER_SEQ START WITH 100; -- data-h2.sql 의 고정 PK와 겹치지 않도록
 
 --------------------------------------------------------
 -- 3. 회원권 (VOUCHER_LOG)
